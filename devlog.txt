@@ -1,0 +1,5 @@
+Day 1 (04.01.25):
+
+Implementing Levenshtein distance!
+Damerau-Levenshtein could be better, but i dont really know
+https://www.youtube.com/watch?v=wtGN3Isa5XY&t=144s 
