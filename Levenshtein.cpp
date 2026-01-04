@@ -29,6 +29,8 @@ int Levenshtein(string input, string output) {
       if (output[i-1] != input[j-1]) matrix[i][j] = 1 + min({matrix[i-1][j-1], matrix[i][j-1], matrix[i-1][j]});
     }
   }
-
-  return matrix[osize][isize];
+  int dist = matrix[osize][isize];
+  for (int i = 0; i <= osize; i++) delete[] matrix[i];
+  delete[] matrix; 
+  return dist;
 }
