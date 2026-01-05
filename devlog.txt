@@ -5,3 +5,8 @@ Damerau-Levenshtein could be better, but i dont really know
 https://www.youtube.com/watch?v=wtGN3Isa5XY&t=144s 
 
 Fixed a memory leak
+
+Day 2 (05.01.25):
+
+Creating the structures for slides and recipes
+Also added a header
