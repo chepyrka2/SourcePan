@@ -10,3 +10,10 @@ Day 2 (05.01.25):
 
 Creating the structures for slides and recipes
 Also added headers
+
+clang++ <files> -o <executable> -lraylib -lGL -lopenal -lm -lpthread -ldl -lX11 -lXrandr -lXi -lXxf86vm -lXcursor -std=c++11
+^^^
+|||
+compile
+
+Started doing the files work... thank god for https://en.cppreference.com/w/cpp/filesystem

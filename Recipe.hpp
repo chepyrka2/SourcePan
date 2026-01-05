@@ -5,6 +5,8 @@
 #include <string>
 #include <initializer_list>
 
+
+
 struct Slide{
   std::string title;
   std::string body;
@@ -29,4 +31,5 @@ struct Recipe{
   void printToConsole();
 };
 
+extern Recipe placeholdersalad;
 #endif
