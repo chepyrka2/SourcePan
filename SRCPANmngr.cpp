@@ -1,12 +1,18 @@
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <zip.h>
 #include <cstdlib>
 #include <string>
 #include "SRCPANmngr.hpp"
+#include "INIReader.h"
 #include "Recipe.hpp"
 
 namespace fs = std::filesystem;
+
+void extractZip(fs::path pth, fs::path out){
+  
+}
 
 char getOS(){
   #if defined(_WIN32) || defined(_WIN64)
@@ -25,16 +31,16 @@ fs::path homedir(){
 }
 
 void StartSRCPAN(){
-  if(!fs::exists(fs::path("recs"))){
-    fs::create_directory(fs::path("recs"));
+  if(!fs::exists(homedir() / fs::path("recs"))){
+    fs::create_directory(homedir() / fs::path("recs"));
   }
-  if(!fs::exists(fs::path("recs"))) StartSRCPAN();
+  if(!fs::exists(homedir() / fs::path("recs"))) StartSRCPAN();
 }
 
 Recipe unpack(fs::path pth){
   if((!fs::exists(pth)) || ((pth.extension() != ".srcpan") && (pth.extension() != ".zip"))) return placeholdersalad;
   if(!fs::exists(fs::path("recs"))) StartSRCPAN();
-  fs::path out = fs::path("recs/"+pth.filename().string());
+  fs::path out = homedir() / "recs" / pth.filename();
   fs::copy_file(pth, out);
   fs::rename(out, out.replace_extension(".zip"));
   
