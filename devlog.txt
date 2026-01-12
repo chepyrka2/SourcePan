@@ -17,3 +17,8 @@ clang++ <files> -o <executable> -lraylib -lGL -lopenal -lm -lpthread -ldl -lX11 
 compile
 
 Started doing the files work... thank god for https://en.cppreference.com/w/cpp/filesystem
+Also did some fixes (e.g. printToConsole()'s )
+
+Day 3 (12.01.25)
+
+Resumed work! Trying to understand libzip
