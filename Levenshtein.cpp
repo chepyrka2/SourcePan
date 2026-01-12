@@ -53,4 +53,4 @@ double fuzzy_search_score(string input, string output){
   return *min_it;
 }
 
-bool is_accurate(double precision, string input, string output) {return fuzzy_search_score(input, output) <= precision; }
+bool is_accurate(double precision, string input, string output) { return fuzzy_search_score(input, output) <= precision; }

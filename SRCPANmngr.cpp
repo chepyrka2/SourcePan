@@ -1,8 +1,9 @@
 #include <filesystem>
-#include <fstream>
 #include <iostream>
-#include <zip.h>
+#include <miniz/miniz.h>
 #include <cstdlib>
+#include <miniz/miniz_zip.h>
+#include <ostream>
 #include <string>
 #include "SRCPANmngr.hpp"
 #include "INIReader.h"
@@ -11,7 +12,37 @@
 namespace fs = std::filesystem;
 
 void extractZip(fs::path pth, fs::path out){
-  
+  mz_zip_archive zip{};
+  if(!mz_zip_reader_init_file(&zip, pth.c_str(), 0)){
+    std::cerr << "Failed!" << std::endl;
+    return;
+  }
+
+  fs::create_directories(out);
+
+  int filesCount = mz_zip_reader_get_num_files(&zip);
+  for(int i = 0; i < filesCount;  i++){
+    mz_zip_archive_file_stat file;
+    mz_zip_reader_file_stat(&zip, i, &file);
+
+    fs::path outFile = out / file.m_filename;
+
+    if(mz_zip_reader_is_file_a_directory(&zip, i)){
+      fs::create_directories(outFile);
+      continue;
+    }
+
+    fs::create_directories(outFile.parent_path());
+
+    if(!mz_zip_reader_extract_to_file(&zip, i, outFile.c_str(), 0)){
+      std::cerr << "Extract failed! " << file.m_filename << std::endl;
+      mz_zip_reader_end(&zip);
+      return;
+    }
+  }
+
+  mz_zip_reader_end(&zip);
+  return;
 }
 
 char getOS(){

@@ -22,3 +22,5 @@ Also did some fixes (e.g. printToConsole()'s )
 Day 3 (12.01.25)
 
 Resumed work! Trying to understand libzip
+Decided to switch to miniz, libzip is lowkey stupid.
+YAAAYY I DID THE UNZIPPING FUNCTION (i hope, testing it later)
