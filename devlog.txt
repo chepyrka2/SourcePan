@@ -24,3 +24,12 @@ Day 3 (12.01.25)
 Resumed work! Trying to understand libzip
 Decided to switch to miniz, libzip is lowkey stupid.
 YAAAYY I DID THE UNZIPPING FUNCTION (i hope, testing it later)
+
+Day 4 (17.01.25)
+
+ZIP WORKSSS!
+pics: screens/success-zip.png
+screens/zipcode.png
+
+Going to make recipelist struct
+Done!

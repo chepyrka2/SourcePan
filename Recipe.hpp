@@ -31,5 +31,12 @@ struct Recipe{
   void printToConsole();
 };
 
+struct Recipelist{
+  std::vector<Recipe> recipes;
+  Recipelist(std::vector<Recipe> recipes);
+  Recipelist();
+  Recipelist searchoutput(std::string search, double precision = 0.3);
+};
+
 extern Recipe placeholdersalad;
 #endif

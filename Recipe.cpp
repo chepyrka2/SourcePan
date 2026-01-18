@@ -71,6 +71,18 @@ void Recipe::printToConsole(){
   }
 }
 
+Recipelist::Recipelist(std::vector<Recipe> recipes){
+  this->recipes = recipes;
+}
+
+Recipelist Recipelist::searchoutput(std::string search, double precision){
+  Recipelist out;
+  for(Recipe recipe : recipes){
+    if(recipe.lookedFor(search, precision)) out.recipes.push_back(recipe);
+  }
+  return out;
+}
+
 Recipe placeholdersalad = Recipe("Olivier Salad with a pitch of failure", "This action failed, but we still decided to give you an Olivier Salad recipe.", "05/01/25", "allrecipes.com", {Slide("Ingridients", "6 potatoes, peeled \n1 carrot, or more to taste \n4 whole eggs \n6 large pickles, cut into cubes \n1 (15 ounce) can peas, drained \n1/2 cup cubed fully cooked ham, or to taste \n1 tablespoon chopped fresh dill, or to taste (optional) \n1/2 cup mayonnaise, or to taste"), Slide("1", "Gather all ingredients. Bring a large pot of water to a boil. "), Slide("2", " Add potatoes, bring to a boil, and cook for 5 to 10 minutes. Add carrots and whole eggs and continue boiling until potatoes are tender, 10 to 15 minutes. "), Slide("3", "Drain and slightly cool mixture."), Slide("4", "Chop potatoes and carrot. Peel and chop eggs."), Slide("5", " Mix potatoes, carrot, eggs, pickles, peas, ham, and dill together in a large bowl. "), Slide("6", "Stir in mayonnaise until salad is evenly coated.")});
 
 

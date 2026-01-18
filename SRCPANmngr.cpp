@@ -6,7 +6,7 @@
 #include <ostream>
 #include <string>
 #include "SRCPANmngr.hpp"
-#include "INIReader.h"
+// #include "INIReader.h"
 #include "Recipe.hpp"
 
 namespace fs = std::filesystem;
@@ -70,10 +70,14 @@ void StartSRCPAN(){
 
 Recipe unpack(fs::path pth){
   if((!fs::exists(pth)) || ((pth.extension() != ".srcpan") && (pth.extension() != ".zip"))) return placeholdersalad;
-  if(!fs::exists(fs::path("recs"))) StartSRCPAN();
+  if(!fs::exists(homedir()/fs::path("recs"))) StartSRCPAN();
   fs::path out = homedir() / "recs" / pth.filename();
   fs::copy_file(pth, out);
   fs::rename(out, out.replace_extension(".zip"));
   
 }
 
+int main(){
+  StartSRCPAN();
+  extractZip("/home/alex/coding/novemba.zip", homedir()/"recs"/"novemba.zip");
+}
