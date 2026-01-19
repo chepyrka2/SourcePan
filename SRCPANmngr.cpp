@@ -3,10 +3,11 @@
 #include <miniz/miniz.h>
 #include <cstdlib>
 #include <miniz/miniz_zip.h>
-#include <ostream>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include "SRCPANmngr.hpp"
-// #include "INIReader.h"
+#include "inih/INIReader.h"
 #include "Recipe.hpp"
 
 namespace fs = std::filesystem;
@@ -72,12 +73,67 @@ Recipe unpack(fs::path pth){
   if((!fs::exists(pth)) || ((pth.extension() != ".srcpan") && (pth.extension() != ".zip"))) return placeholdersalad;
   if(!fs::exists(homedir()/fs::path("recs"))) StartSRCPAN();
   fs::path out = homedir() / "recs" / pth.filename();
-  fs::copy_file(pth, out);
-  fs::rename(out, out.replace_extension(".zip"));
-  
+  fs::path out2 = out;
+  fs::copy_file(pth, out, fs::copy_options::overwrite_existing);
+  fs::rename(out, out2);
+  extractZip(out, out.replace_extension());
+  out = out.replace_extension(".zip");
+  fs::remove(out);
+  out = out.replace_extension();
+  INIReader ini((out / "info.ini").string());
+  std::string name = ini.Get("Info", "Name", "Unknown");
+  std::string desc = ini.Get("Info", "Description", "Nothing!");
+  std::string author = ini.Get("Info", "Author", "Anonimous J. D.");
+  std::string date = ini.Get("Info", "Date", "19.01.26");
+  Recipe recipe(name, desc, date, author);
+  // int i = 0;
+  // for(const auto& entry : fs::directory_iterator(out/"slides")){
+  //   i++;
+    // char flags = 0;
+    // std::ifstream slidetxt(out/"slides"/(std::to_string(i) + ".txt"));
+    // if(!slidetxt.is_open()) return placeholdersalad;
+    // std::string pic;
+    // std::getline(slidetxt, pic);
+    // if(pic.find("Pic:") != std::string::npos) pic = pic.substr(pic.find("Pic:")+5);
+    // else flags |= 1;
+    // std::string title;
+    // std::getline(slidetxt, title);
+    // if(pic.find("Title:") != std::string::npos) title = title.substr(title.find("Title:")+7);
+    // else title = std::to_string(i);
+    // std::stringstream buf;
+    // std::string line;
+    // while(std::getline(slidetxt, line)) buf << line << "\n";
+    // Slide idk;
+    // if(flags) idk = Slide(title, buf.str());
+    // else idk = Slide(title, buf.str(), pic);
+    // recipe.slides.push_back(idk);
+  // }
+
+  for(int i = 1;; i++){
+    fs::path slidetxtpth = out / "slides" / (std::to_string(i) + ".txt");
+    if(!fs::exists(slidetxtpth)) break;
+    char flags = 0;
+    std::ifstream slidetxt(out/"slides"/(std::to_string(i) + ".txt"));
+    if(!slidetxt.is_open()) return placeholdersalad;
+    std::string pic;
+    std::getline(slidetxt, pic);
+    if(pic.find("Pic:") != std::string::npos) pic = pic.substr(pic.find("Pic:")+5);
+    else flags |= 1;
+    std::string title;
+    std::getline(slidetxt, title);
+    if(title.find("Title:") != std::string::npos) title = title.substr(title.find("Title:")+7);
+    else title = std::to_string(i);
+    std::stringstream buf;
+    std::string line;
+    while(std::getline(slidetxt, line)) buf << line << "\n";
+    Slide idk;
+    if(flags) idk = Slide(title, buf.str());
+    else idk = Slide(title, buf.str(), pic);
+    recipe.slides.push_back(idk);
+  }
+  return recipe;
 }
 
 int main(){
-  StartSRCPAN();
-  extractZip("/home/alex/coding/novemba.zip", homedir()/"recs"/"novemba.zip");
+  unpack("/home/alex/coding/project/water.srcpan").printToConsole();
 }

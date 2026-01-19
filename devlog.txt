@@ -1,4 +1,4 @@
-Day 1 (04.01.25):
+Day 1 (04.01.26):
 
 Implementing Levenshtein distance!
 Damerau-Levenshtein could be better, but i dont really know
@@ -6,7 +6,7 @@ https://www.youtube.com/watch?v=wtGN3Isa5XY&t=144s
 
 Fixed a memory leak
 
-Day 2 (05.01.25):
+Day 2 (05.01.26):
 
 Creating the structures for slides and recipes
 Also added headers
@@ -19,13 +19,13 @@ compile
 Started doing the files work... thank god for https://en.cppreference.com/w/cpp/filesystem
 Also did some fixes (e.g. printToConsole()'s )
 
-Day 3 (12.01.25)
+Day 3 (12.01.26)
 
 Resumed work! Trying to understand libzip
 Decided to switch to miniz, libzip is lowkey stupid.
 YAAAYY I DID THE UNZIPPING FUNCTION (i hope, testing it later)
 
-Day 4 (17.01.25)
+Day 4 (17.01.26)
 
 ZIP WORKSSS!
 pics: screens/success-zip.png
@@ -33,3 +33,17 @@ screens/zipcode.png
 
 Going to make recipelist struct
 Done!
+
+Day 5 (19.01.26)
+
+Making unpack(), on last stage.
+Did it. Some bugs wre on my way:
+- Bad inih linking
+- I went through the directories with directory_iterator when my syntax
+just for(int i = 1;; i++)
+- Bad zip
+- No copy override
+- Typo: mixed up a pic variable and a title variable in one place
+- The replace_extention modificated the path, solved with making a fs::path out2 = out;
+The only screen I have is last error (first_big_bug.png)
+Also the success screen! (success_unpack.png)
