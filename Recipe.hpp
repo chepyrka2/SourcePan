@@ -15,6 +15,8 @@ struct Slide{
   Slide(std::string title, std::string body);
   Slide();
   void printToConsole();
+  bool operator==(Slide a);
+  bool operator!=(Slide a);
 };
 
 struct Recipe{  
@@ -30,13 +32,20 @@ struct Recipe{
   void removeSlide(std::string titleToRemove);
   bool lookedFor(std::string search, double precision = 0.3) ; 
   void printToConsole();
+  bool operator==(Recipe a);
+  bool operator!=(Recipe a);
 };
+
 
 struct Recipelist{
   std::vector<Recipe> recipes;
   Recipelist(std::vector<Recipe> recipes);
   Recipelist();
   Recipelist searchoutput(std::string search, double precision = 0.3);
+  Recipelist operator+(Recipelist a);
+  Recipelist operator+(Recipe a);
+  Recipelist& operator+=(Recipe& a);
+  Recipelist& operator+=(Recipelist& a);
 };
 
 extern Recipe placeholdersalad;

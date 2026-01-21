@@ -46,6 +46,50 @@ void extractZip(fs::path pth, fs::path out){
   return;
 }
 
+void load(Recipelist& toAdd){
+  Recipelist loading;
+  fs::path recs = homedir() / "recs";
+  fs::path pwd;
+  std::string name;
+  std::string desc;
+  std::string author;
+  std::string date;
+  for(auto& entry : fs::directory_iterator(recs)){
+    if(!fs::is_directory(entry.path())) continue;
+    pwd = entry.path();
+    INIReader ini(pwd / "info.ini");
+    std::string name = ini.Get("Info", "Name", "Unknown");
+    std::string desc = ini.Get("Info", "Description", "Nothing!");
+    std::string author = ini.Get("Info", "Author", "Anonimous J. D.");
+    std::string date = ini.Get("Info", "Date", "19.01.26"); 
+    Recipe recipe(name, desc, date, author);
+    for(int i = 1;; i++){
+      fs::path slidetxtpth = pwd / "slides" / (std::to_string(i) + ".txt");
+      if(!fs::exists(slidetxtpth)) break;
+      char flags = 0;
+      std::ifstream slidetxt(pwd/"slides"/(std::to_string(i) + ".txt"));
+      if(!slidetxt.is_open()) recipe = placeholdersalad;
+      std::string pic;
+      std::getline(slidetxt, pic);
+      if(pic.find("Pic:") != std::string::npos) pic = pic.substr(pic.find("Pic:")+5);
+      else flags |= 1;
+      std::string title;
+      std::getline(slidetxt, title);
+      if(title.find("Title:") != std::string::npos) title = title.substr(title.find("Title:")+7);
+      else title = std::to_string(i);
+      std::stringstream buf;
+      std::string line;
+      while(std::getline(slidetxt, line)) buf << line << "\n";
+      Slide idk;
+      if(flags) idk = Slide(title, buf.str());
+      else idk = Slide(title, buf.str(), pic);
+      recipe.slides.push_back(idk);
+    }
+    loading += recipe;
+  }
+  toAdd += loading;
+}
+
 char getOS(){
   #if defined(_WIN32) || defined(_WIN64)
     return 'w';
@@ -86,29 +130,6 @@ Recipe unpack(fs::path pth){
   std::string author = ini.Get("Info", "Author", "Anonimous J. D.");
   std::string date = ini.Get("Info", "Date", "19.01.26");
   Recipe recipe(name, desc, date, author);
-  // int i = 0;
-  // for(const auto& entry : fs::directory_iterator(out/"slides")){
-  //   i++;
-    // char flags = 0;
-    // std::ifstream slidetxt(out/"slides"/(std::to_string(i) + ".txt"));
-    // if(!slidetxt.is_open()) return placeholdersalad;
-    // std::string pic;
-    // std::getline(slidetxt, pic);
-    // if(pic.find("Pic:") != std::string::npos) pic = pic.substr(pic.find("Pic:")+5);
-    // else flags |= 1;
-    // std::string title;
-    // std::getline(slidetxt, title);
-    // if(pic.find("Title:") != std::string::npos) title = title.substr(title.find("Title:")+7);
-    // else title = std::to_string(i);
-    // std::stringstream buf;
-    // std::string line;
-    // while(std::getline(slidetxt, line)) buf << line << "\n";
-    // Slide idk;
-    // if(flags) idk = Slide(title, buf.str());
-    // else idk = Slide(title, buf.str(), pic);
-    // recipe.slides.push_back(idk);
-  // }
-
   for(int i = 1;; i++){
     fs::path slidetxtpth = out / "slides" / (std::to_string(i) + ".txt");
     if(!fs::exists(slidetxtpth)) break;
@@ -135,5 +156,7 @@ Recipe unpack(fs::path pth){
 }
 
 int main(){
-  unpack("/home/alex/coding/project/water.srcpan").printToConsole();
+  Recipelist recipes;
+  load(recipes);
+  recipes.recipes[0].printToConsole();
 }

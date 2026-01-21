@@ -7,6 +7,7 @@
 namespace fs = std::filesystem;
 
 void extractZip(fs::path pth, fs::path out);
+void load(Recipelist& toAdd);
 fs::path homedir();
 char getOS();
 Recipe unpack(fs::path pth);

@@ -47,3 +47,14 @@ just for(int i = 1;; i++)
 - The replace_extention modificated the path, solved with making a fs::path out2 = out;
 The only screen I have is last error (first_big_bug.png)
 Also the success screen! (success_unpack.png)
+
+Day 6 (21.01.26)
+
+Gonna make the loading of recipes from recs folder
+Also, overloaded some operators.
+Did it!
+Errors I met:
+std::find(*this->recipes.begin(), *this->recipes.end(), a)
+Here, *this->recipes.begin() is a Recipe, and not an iterator, as it
+reads this as *(this->recipes.begin()) and not as (*this)->recipes.begin()
+success!
