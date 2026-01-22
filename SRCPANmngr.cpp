@@ -12,6 +12,24 @@
 
 namespace fs = std::filesystem;
 
+void archiveZip(fs::path pth, fs::path out){
+  mz_zip_archive zip{};
+  if (!mz_zip_writer_init_file(&zip, out.c_str(), 0)) {
+    std::cerr << "Failed to init writer!";
+    return;
+  }
+  for(auto& entry : fs::recursive_directory_iterator(pth)){
+    std::string relative = fs::relative(entry.path(), pth).generic_string();
+    if(fs::is_directory(entry.path())){
+      mz_zip_writer_add_mem(&zip, (relative + '/').c_str(), "", 0, MZ_NO_COMPRESSION);
+    }
+    else mz_zip_writer_add_file(&zip, relative.c_str(), entry.path().c_str(), nullptr, 0, MZ_BEST_COMPRESSION);
+  }
+
+  mz_zip_writer_finalize_archive(&zip);
+  mz_zip_writer_end(&zip);
+}
+
 void extractZip(fs::path pth, fs::path out){
   mz_zip_archive zip{};
   if(!mz_zip_reader_init_file(&zip, pth.c_str(), 0)){
@@ -119,9 +137,11 @@ Recipe unpack(fs::path pth){
   fs::path out = homedir() / "recs" / pth.filename();
   fs::path out2 = out;
   fs::copy_file(pth, out, fs::copy_options::overwrite_existing);
-  fs::rename(out, out2);
-  extractZip(out, out.replace_extension());
-  out = out.replace_extension(".zip");
+  out2.replace_extension(".zip");
+  if(out.extension() != ".zip")fs::rename(out, out2);
+  out.replace_extension();
+  extractZip(out2, out);
+  out.replace_extension(".zip");
   fs::remove(out);
   out = out.replace_extension();
   INIReader ini((out / "info.ini").string());
@@ -156,7 +176,9 @@ Recipe unpack(fs::path pth){
 }
 
 int main(){
-  Recipelist recipes;
-  load(recipes);
-  recipes.recipes[0].printToConsole();
+  // Recipelist recipes;
+  // load(recipes);
+  // recipes.recipes[0].printToConsole();
+  // archiveZip("/home/alex/recs/water", "/home/alex/recs/water.zip");
+  unpack("/home/alex/recs/water.zip").printToConsole();
 }

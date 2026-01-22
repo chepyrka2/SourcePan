@@ -6,6 +6,7 @@
 #include <string>
 namespace fs = std::filesystem;
 
+void archiveZip(fs::path pth, fs::path out);
 void extractZip(fs::path pth, fs::path out);
 void load(Recipelist& toAdd);
 fs::path homedir();
