@@ -64,3 +64,8 @@ Day 7 (22.01.26)
 Gonna make archiving and start the pack.
 Logic in the unpack() was awful, but my head hurts, so im gonna fix this tomorrow.
 Bug -> 2026-01-22-bug.png
+
+Day 8 (23.01.26)
+
+Gonna fix the logic.
+Fixed!

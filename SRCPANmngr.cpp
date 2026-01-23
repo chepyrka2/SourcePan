@@ -132,18 +132,18 @@ void StartSRCPAN(){
 }
 
 Recipe unpack(fs::path pth){
-  if((!fs::exists(pth)) || ((pth.extension() != ".srcpan") && (pth.extension() != ".zip"))) return placeholdersalad;
-  if(!fs::exists(homedir()/fs::path("recs"))) StartSRCPAN();
-  fs::path out = homedir() / "recs" / pth.filename();
-  fs::path out2 = out;
-  fs::copy_file(pth, out, fs::copy_options::overwrite_existing);
-  out2.replace_extension(".zip");
-  if(out.extension() != ".zip")fs::rename(out, out2);
-  out.replace_extension();
-  extractZip(out2, out);
-  out.replace_extension(".zip");
-  fs::remove(out);
-  out = out.replace_extension();
+  if((!fs::exists(pth)) || ((pth.extension() != ".zip") && (pth.extension() != ".srcpan"))) return placeholdersalad;
+  if(!fs::exists(homedir() / "recs")) StartSRCPAN();
+  fs::path temp;
+  temp = pth;
+  temp.replace_extension(".zip");
+  fs::path out = homedir() / "recs" / temp.filename();
+  if(!fs::equivalent(pth, out))
+    fs::copy(pth, out, fs::copy_options::overwrite_existing);
+  out = temp;
+  temp.replace_extension();
+  extractZip(out, temp);
+  out = temp;
   INIReader ini((out / "info.ini").string());
   std::string name = ini.Get("Info", "Name", "Unknown");
   std::string desc = ini.Get("Info", "Description", "Nothing!");
