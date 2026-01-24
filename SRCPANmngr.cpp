@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include "SRCPANmngr.hpp"
+#include "Levenshtein.hpp"
 #include "inih/INIReader.h"
 #include "Recipe.hpp"
 
@@ -126,7 +127,7 @@ fs::path homedir(){
 
 void StartSRCPAN(){
   if(!fs::exists(homedir() / fs::path("recs"))){
-    fs::create_directory(homedir() / fs::path("recs"));
+    fs::create_directories(homedir() / fs::path("recs"));
   }
   if(!fs::exists(homedir() / fs::path("recs"))) StartSRCPAN();
 }
@@ -137,9 +138,11 @@ Recipe unpack(fs::path pth){
   fs::path temp;
   temp = pth;
   temp.replace_extension(".zip");
+  if(!fs::equivalent(pth, temp))
+    fs::copy(pth, temp, fs::copy_options::overwrite_existing);
   fs::path out = homedir() / "recs" / temp.filename();
-  if(!fs::equivalent(pth, out))
-    fs::copy(pth, out, fs::copy_options::overwrite_existing);
+  if(!fs::equivalent(temp, out))
+    fs::copy(temp, out, fs::copy_options::overwrite_existing);
   out = temp;
   temp.replace_extension();
   extractZip(out, temp);
@@ -175,10 +178,62 @@ Recipe unpack(fs::path pth){
   return recipe;
 }
 
+void pack(Recipe recipe, fs::path path){
+  fs::path cwd;
+  if(fs::exists(homedir() / "recs" / plaintext(recipe.name))){
+    int i = 1;
+    while(fs::exists(homedir() / "recs" / (plaintext(recipe.name) + "0" + std::to_string(i)))) {
+      if (i <= 100) i++;
+      else {
+        std::cerr << "Delete any folder with recipes name and a numbers" << std::endl;
+        return;
+      }
+    }
+    cwd = homedir() / "recs" / (plaintext(recipe.name) + "0" + std::to_string(i));
+    fs::create_directories(cwd / "pics");
+    fs::copy(homedir() / "recs" / plaintext(recipe.name) / "pics", cwd / "pics", fs::copy_options::recursive);
+  } else {
+    cwd = homedir() / "recs" / plaintext(recipe.name);
+    for(Slide& slide : recipe.slides) slide.image = "";
+  }
+  fs::create_directories(cwd);
+  fs::create_directories(cwd / "slides");
+  if(fs::exists(cwd / "pics")) fs::create_directories(cwd / "pics");
+  std::ofstream info(cwd / "info.ini");
+  info << "[Info]\n"
+          "Name=" << recipe.name << "\n"
+          "Description=" << recipe.desc << "\n"
+          "Author=" << recipe.author << "\n"
+          "Date=" << recipe.date;
+  info.close();
+  int i = 1;
+  for(Slide slide : recipe.slides){
+    std::ofstream slidetxt(cwd / "slides" / (std::to_string(i) + ".txt"));
+    if(!slide.image.empty()) slidetxt << "Pic: " << slide.image;
+    slidetxt << "\n";
+    if(slide.title != std::to_string(i)) slidetxt << "Title: " << slide.title;
+    slidetxt << "\n";
+    slidetxt << slide.body;
+    slidetxt.close();
+    i++;
+  }
+  path.replace_extension(".zip");
+  if(fs::exists(path)) fs::remove_all(path);
+  archiveZip(cwd, path);
+  path.replace_extension(".srcpan");
+  if(fs::exists(path)) fs::remove_all(path);
+  path.replace_extension(".zip");
+  fs::path pth = path;
+  pth.replace_extension(".srcpan");
+  fs::rename(path, pth);
+}
+
 int main(){
   // Recipelist recipes;
   // load(recipes);
   // recipes.recipes[0].printToConsole();
   // archiveZip("/home/alex/recs/water", "/home/alex/recs/water.zip");
-  unpack("/home/alex/recs/water.zip").printToConsole();
+  // // unpack("/home/alex/recs/water.zip").printToConsole();
+  // pack(placeholdersalad, "/home/alex/screenshots/water.srcpan");
+  unpack("/home/alex/screenshots/water.srcpan").printToConsole();
 }

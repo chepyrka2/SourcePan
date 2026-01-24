@@ -8,9 +8,9 @@
 
 
 struct Slide{
-  std::string title;
-  std::string body;
-  std::string image;
+  std::string title = "";
+  std::string body = "";
+  std::string image = "";
   Slide(std::string title, std::string body, std::string image);
   Slide(std::string title, std::string body);
   Slide();

@@ -3,7 +3,7 @@
 
 #include <filesystem>
 #include "Recipe.hpp"
-#include <string>
+
 namespace fs = std::filesystem;
 
 void archiveZip(fs::path pth, fs::path out);
@@ -12,7 +12,7 @@ void load(Recipelist& toAdd);
 fs::path homedir();
 char getOS();
 Recipe unpack(fs::path pth);
-void pack(Recipe recipe, std::string path);
+void pack(Recipe recipe, fs::path path);
 void StartSRCPAN();
 
 #endif

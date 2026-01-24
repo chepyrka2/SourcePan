@@ -69,3 +69,25 @@ Day 8 (23.01.26)
 
 Gonna fix the logic.
 Fixed!
+
+Day 9 (24.01.26)
+
+Was making the pack().
+I've met a lot of errors.
+1. (pic - srcpantosrcpan.png)
+I forgot that .replace_extention() mutates the path (23:31, my throat is sore)
+Fixed by adding a new var
+2. (pic - faultynewfolderlogic.png)
+Accidentally added a !, which made the func so search for an occupied path instead
+of a free one.
+Fixed by deleting the !.
+3. (pics - noslides.png
+           noslidesreason.png)
+Because I forgot to add the right path to std::ofstream slidetxt,
+it spawned the slide in the directory I launched it from.
+Fixed by adding the real path.
+4. (pic - Failed!.png)
+The unpack() with it's bad logic betrayed me... again.
+Fixed the unpack()... again.
+
+Starting to make the interface tomorrow! (I hope
