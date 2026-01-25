@@ -96,3 +96,4 @@ Day 10 (25.01.26)
 
 Moved to CLion from VSCode, structured the project, added CMake
 Made a wrapper, taught some raylib (pic - wrapper.png)
+Also made a resizing func (pic - 67.png)
