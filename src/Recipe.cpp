@@ -3,8 +3,8 @@
 #include <string>
 #include <initializer_list>
 #include <algorithm>
-#include "Levenshtein.hpp"
-#include "Recipe.hpp"
+#include "headers/Levenshtein.hpp"
+#include "headers/Recipe.hpp"
 
 std::string bar(30, '-');
 

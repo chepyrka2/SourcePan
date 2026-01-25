@@ -6,10 +6,10 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include "SRCPANmngr.hpp"
-#include "Levenshtein.hpp"
-#include "inih/INIReader.h"
-#include "Recipe.hpp"
+#include "headers/SRCPANmngr.hpp"
+#include "headers/Levenshtein.hpp"
+#include "../inih/INIReader.h"
+#include "headers/Recipe.hpp"
 
 namespace fs = std::filesystem;
 
