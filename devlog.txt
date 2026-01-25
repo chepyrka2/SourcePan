@@ -90,4 +90,9 @@ Fixed by adding the real path.
 The unpack() with it's bad logic betrayed me... again.
 Fixed the unpack()... again.
 
-Starting to make the interface tomorrow! (I hope
+Starting to make the interface tomorrow! (I hope)
+
+Day 10 (25.01.26)
+
+Moved to CLion from VSCode, structured the project, added CMake
+Made a wrapper, taught some raylib (pic - wrapper.png)
