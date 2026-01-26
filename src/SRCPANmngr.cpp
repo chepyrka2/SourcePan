@@ -77,10 +77,10 @@ void load(Recipelist& toAdd){
     if(!fs::is_directory(entry.path())) continue;
     pwd = entry.path();
     INIReader ini(pwd / "info.ini");
-    std::string name = ini.Get("Info", "Name", "Unknown");
-    std::string desc = ini.Get("Info", "Description", "Nothing!");
-    std::string author = ini.Get("Info", "Author", "Anonimous J. D.");
-    std::string date = ini.Get("Info", "Date", "19.01.26"); 
+    name = ini.Get("Info", "Name", "Unknown");
+    desc = ini.Get("Info", "Description", "Nothing!");
+    author = ini.Get("Info", "Author", "Anonimous J. D.");
+    date = ini.Get("Info", "Date", "19.01.26");
     Recipe recipe(name, desc, date, author);
     for(int i = 1;; i++){
       fs::path slidetxtpth = pwd / "slides" / (std::to_string(i) + ".txt");
@@ -161,7 +161,11 @@ Recipe unpack(fs::path pth){
     if(!slidetxt.is_open()) return placeholdersalad;
     std::string pic;
     std::getline(slidetxt, pic);
-    if(pic.find("Pic:") != std::string::npos) pic = pic.substr(pic.find("Pic:")+5);
+    if(pic.find("Pic:") != std::string::npos) {
+      fs::path larpingPath = pic.substr(pic.find("Pic:")+5);
+      fs::path realPath = temp / "pics" / larpingPath.filename();
+      if (fs::exists(realPath)) pic = realPath.string();
+    }
     else flags |= 1;
     std::string title;
     std::getline(slidetxt, title);
@@ -228,12 +232,12 @@ void pack(Recipe recipe, fs::path path){
   fs::rename(path, pth);
 }
 
-int main(){
-  // Recipelist recipes;
-  // load(recipes);
-  // recipes.recipes[0].printToConsole();
-  // archiveZip("/home/alex/recs/water", "/home/alex/recs/water.zip");
-  // // unpack("/home/alex/recs/water.zip").printToConsole();
-  // pack(placeholdersalad, "/home/alex/screenshots/water.srcpan");
-  unpack("/home/alex/screenshots/water.srcpan").printToConsole();
-}
+// int main(){
+//   // Recipelist recipes;
+//   // load(recipes);
+//   // recipes.recipes[0].printToConsole();
+//   // archiveZip("/home/alex/recs/water", "/home/alex/recs/water.zip");
+//   // // unpack("/home/alex/recs/water.zip").printToConsole();
+//   // pack(placeholdersalad, "/home/alex/screenshots/water.srcpan");
+//   unpack("/home/alex/screenshots/water.srcpan").printToConsole();
+// }

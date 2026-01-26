@@ -26,7 +26,7 @@ struct Recipe{
   std::string author;
   std::vector<Slide> slides;
   Recipe(std::string name, std::string desc, std::string date, std::string author, std::initializer_list<Slide> slides); // With initializer list
-  Recipe(std::string name, std::string desc, std::string date, std::string author); // No initializer list
+  Recipe(std::string name, std::string desc, std::string date, std::string author);
   void addSlide(std::string title, std::string body, std::string image) ;
   void removeSlide(int index);
   void removeSlide(std::string titleToRemove);

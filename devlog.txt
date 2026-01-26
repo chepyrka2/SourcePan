@@ -97,3 +97,9 @@ Day 10 (25.01.26)
 Moved to CLion from VSCode, structured the project, added CMake
 Made a wrapper, taught some raylib (pic - wrapper.png)
 Also made a resizing func (pic - 67.png)
+
+Day 11 (26.01.26)
+
+Gonna make Scene and SceneManager
+made the abstract class scene, also made the font loading!
+fixed a bit of srcpanmngr

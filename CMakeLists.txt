@@ -13,6 +13,10 @@ find_package(
         raylib REQUIRED
 )
 
+find_package(
+        miniz REQUIRED
+)
+
 # --- inih library ---
 add_library(inih
         inih/ini.c
@@ -52,3 +56,4 @@ target_link_libraries(project
 )
 
 target_link_libraries(project PRIVATE raylib)
+target_link_libraries(project PRIVATE miniz)
