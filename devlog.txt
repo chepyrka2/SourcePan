@@ -103,3 +103,13 @@ Day 11 (26.01.26)
 Gonna make Scene and SceneManager
 made the abstract class scene, also made the font loading!
 fixed a bit of srcpanmngr
+
+Day 12 (27.01.26)
+
+Made the RecipeViewScene and SceneManager classes.
+They work.
+Because scene class is abstract, I had to use unique pointers. The GeeksForGeeks article was quite helpful.
+https://www.geeksforgeeks.org/cpp/unique_ptr-in-cpp/
+Also used the LSP (Liskov substitution principle) 🤓🤓
+Image btw (pic - Recipeview.png)
+(dw, its not an error, I just displayed the placeholder recipe)

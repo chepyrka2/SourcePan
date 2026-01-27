@@ -6,6 +6,8 @@
 #include <filesystem>
 #include "headers/Recipe.hpp"
 #include "headers/Levenshtein.hpp"
+#include <vector>
+#include <memory>
 
 namespace fs = std::filesystem;
 
@@ -29,41 +31,69 @@ Texture2D resize(fs::path img, int x, int y) {
 
 class Scene {
   public:
+    Font font;
     virtual void draw() = 0;
     virtual void input() = 0;
-    virtual void update() = 0;
 
     virtual ~Scene() = default;
 };
 
-class RecipeViewScene : public Scene {
+class SceneManager {
+private:
+  std::vector<std::unique_ptr<Scene>> scenes;
+  Scene* current = nullptr;
 public:
-  Recipe recipe = placeholdersalad;
-
-  void draw() override {
-
+  void add(std::unique_ptr<Scene> scene) {
+    scenes.push_back(std::move(scene));
   }
+
+  void del(unsigned int ind) {
+    scenes.erase(scenes.begin() + ind);
+  }
+
+  void del(Scene* scene) {
+    for (int i = 0; i < scenes.size(); i++) {
+      if (scenes[i].get() == scene) del(i);
+    }
+  }
+
+  void setCurrent(Scene* scene) {
+    current = scene;
+  }
+
+  void setCurrent(unsigned int ind) {
+    current = scenes[ind].get();
+  }
+
+  void draw() {
+    current->draw();
+  }
+
+  void input() {
+    current->input();
+  }
+
 };
 
-std::string wrapping(std::string input, int linelength) {
+
+std::string wrapping(std::string input, int linelength, int limit) {
   if (input.empty()) return input;
 
   std::string wrapped;
-  wrapped.reserve(input.size() + input.size() / linelength);
-  if (input.size() > 1000) {
-    input.erase(input.begin() + 1000);
+  if (input.size() > limit) {
+    input.erase(input.begin() + limit + 1);
     input.append("...");
   }
 
   unsigned int n = 0;
 
-  for (char c: input) {
-    wrapped.push_back(c);
+  for (int i = 0; i < input.size(); i++) {
+    wrapped.push_back(input[i]);
     n++;
 
-    if (n == linelength) {
-      if (std::isalpha(c)) wrapped.push_back('-');
-      if (c != '\n') wrapped.push_back('\n');
+    if ((i != input.size()) && (n == linelength)) {
+      if ((std::isalpha(input[i])) && (std::isalpha(input[i+1]))) wrapped.push_back('-');
+      if (input[i] != '\n') wrapped.push_back('\n');
       n = 0;
     }
   }
@@ -71,12 +101,36 @@ std::string wrapping(std::string input, int linelength) {
   return wrapped;
 }
 
+class RecipeViewScene : public Scene {
+private:
+  SceneManager* sm;
+public:
+  Recipe recipe = placeholdersalad;
+  RecipeViewScene(Recipe recipe, Font font, SceneManager& sm) {
+    this->font = font;
+    this->recipe = recipe;
+    this->sm = &sm;
+  }
+
+  void draw() override {
+    ClearBackground(WHITE);
+    DrawTextEx(font, wrapping(recipe.name, 30, 59).c_str(), (Vector2){50, 35}, 40, 2, BLACK);
+    DrawTextEx(font, wrapping(recipe.date, 10000, 10000).c_str(), (Vector2){w - 10 - MeasureTextEx(font, recipe.date.c_str(), 27, 2).x, 5}, 27, 2, BLACK);
+    DrawTextEx(font, wrapping(recipe.author, 31, 30).c_str(), (Vector2){w - 20 - MeasureTextEx(font, recipe.date.c_str(), 27, 2).x - MeasureTextEx(font, recipe.author.c_str(), 27, 2).x, 5}, 27, 2, BLACK);
+    DrawTextEx(font, wrapping(recipe.desc, 80, 1600).c_str(), (Vector2){50, 120}, 20, 2, BLACK);
+    DrawTextEx(font, "Esc - To menu\nEnter - View", (Vector2){w - 10 - MeasureTextEx(font, "Esc - To menu\nEnter - View", 30, 2).x, h - 10 - MeasureTextEx(font, "Esc - To menu\nEnter - View", 30, 2).y}, 30, 2, BLACK);
+  }
+
+  void input() override {}
+};
+
 int main() {
   InitWindow(w, h, title);
-  Texture2D test = resize("/home/alex/Downloads/images.jpg", 200, 200);
+  // Texture2D test = resize("/home/alex/Downloads/images.jpg", 200, 200);
   SetTargetFPS(fps);
   fs::path font;
   bool haveFont = 1;
+  SceneManager sm;
   if (getOS() == 'l') {
     if (!fs::exists(homedir() / ".local" / "share" / "SourcePan")) fs::create_directories (homedir() / ".local" / "share" / "SourcePan");
     font = homedir() / ".local" / "share" / "SourcePan" / "font.ttf";
@@ -89,12 +143,13 @@ int main() {
     }
   }
   Font montserrat;
-  if (haveFont) montserrat = LoadFontEx(font.c_str(), 64, NULL, 0);
+  if (haveFont) montserrat = LoadFontEx(font.c_str(), 100, NULL, 0);
+  std::unique_ptr<Scene> a = std::make_unique<RecipeViewScene>(placeholdersalad, montserrat, sm);
+  sm.add(std::move(a));
+  sm.setCurrent((unsigned int)0);
   while (!WindowShouldClose()) {
     BeginDrawing();
-    ClearBackground(RAYWHITE);
-    DrawTexture(test, 50, 50, WHITE);
-    DrawTextEx(montserrat, "676767 Hi 676767", (Vector2){67, 67}, (float)60, 2, RED);
+    sm.draw();
     EndDrawing();
   }
   CloseWindow();
