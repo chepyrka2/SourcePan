@@ -138,11 +138,13 @@ Recipe unpack(fs::path pth){
   fs::path temp;
   temp = pth;
   temp.replace_extension(".zip");
-  if(!fs::equivalent(pth, temp))
-    fs::copy(pth, temp, fs::copy_options::overwrite_existing);
+  if (fs::exists(temp))
+    if(!fs::equivalent(pth, temp))
+      fs::copy(pth, temp, fs::copy_options::overwrite_existing);
   fs::path out = homedir() / "recs" / temp.filename();
-  if(!fs::equivalent(temp, out))
-    fs::copy(temp, out, fs::copy_options::overwrite_existing);
+  if (fs::exists(temp) && fs::exists(out))
+    if(!fs::equivalent(temp, out))
+      fs::copy(temp, out, fs::copy_options::overwrite_existing);
   out = temp;
   temp.replace_extension();
   extractZip(out, temp);
@@ -162,9 +164,12 @@ Recipe unpack(fs::path pth){
     std::string pic;
     std::getline(slidetxt, pic);
     if(pic.find("Pic:") != std::string::npos) {
-      fs::path larpingPath = pic.substr(pic.find("Pic:")+5);
-      fs::path realPath = temp / "pics" / larpingPath.filename();
-      if (fs::exists(realPath)) pic = realPath.string();
+      // fs::path  = pic.substr(pic.find("Pic:")+5);
+      // fs::path realPath = temp / "pics" / larpingPath.filename();
+      // if (fs::exists(realPath)) pic = ;
+      std::string fn = pic.substr(pic.find("Pic: ") + 5);
+      fs::path pthh = fs::absolute(temp / "pics" / fn);
+      pic = pthh.string();
     }
     else flags |= 1;
     std::string title;
@@ -213,7 +218,7 @@ void pack(Recipe recipe, fs::path path){
   int i = 1;
   for(Slide slide : recipe.slides){
     std::ofstream slidetxt(cwd / "slides" / (std::to_string(i) + ".txt"));
-    if(!slide.image.empty()) slidetxt << "Pic: " << slide.image;
+    if(!slide.image.empty()) slidetxt << "Pic: " << fs::path( slide.image ).filename();
     slidetxt << "\n";
     if(slide.title != std::to_string(i)) slidetxt << "Title: " << slide.title;
     slidetxt << "\n";

@@ -113,3 +113,11 @@ https://www.geeksforgeeks.org/cpp/unique_ptr-in-cpp/
 Also used the LSP (Liskov substitution principle) 🤓🤓
 Image btw (pic - Recipeview.png)
 (dw, its not an error, I just displayed the placeholder recipe)
+
+Day 13 (28.01.26)
+
+Going to make the slide scene rn
+Almost done!
+Eureka! I can change the parameters of the scene instead of the scene itself! How didnt I get it at first 😭😭
+Fixed SRCPANmngr.cpp! Images were wrong, fixed the path.
+Pic -> ImageAndSlide.png

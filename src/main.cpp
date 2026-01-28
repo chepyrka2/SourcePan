@@ -19,7 +19,7 @@ const int fps = 60;
 Texture2D resize(fs::path img, int x, int y) {
   if (!fs::exists(img)) {
     std::cerr << "Image not found" << std::endl;
-    exit(1);
+    return Texture2D{};
   }
   Image image = LoadImage(img.c_str());
   ImageResize(&image, x, y);
@@ -31,18 +31,20 @@ Texture2D resize(fs::path img, int x, int y) {
 
 class Scene {
   public:
-    Font font;
     virtual void draw() = 0;
     virtual void input() = 0;
 
     virtual ~Scene() = default;
+
+    virtual void reload(Recipe recipe) = 0;
 };
 
 class SceneManager {
 private:
-  std::vector<std::unique_ptr<Scene>> scenes;
   Scene* current = nullptr;
 public:
+  std::vector<std::unique_ptr<Scene>> scenes;
+
   void add(std::unique_ptr<Scene> scene) {
     scenes.push_back(std::move(scene));
   }
@@ -62,6 +64,7 @@ public:
   }
 
   void setCurrent(unsigned int ind) {
+    // del(1);
     current = scenes[ind].get();
   }
 
@@ -78,7 +81,14 @@ public:
 
 std::string wrapping(std::string input, int linelength, int limit) {
   if (input.empty()) return input;
-
+  for (int i = 0; i < input.size(); i++) {
+    if ( (input[i] == ' ') || (input[i] == '\n') ) {
+      input.erase(input.begin() + i);
+      i--;
+    } else {
+      break;
+    }
+  }
   std::string wrapped;
   if (input.size() > limit) {
     input.erase(input.begin() + limit + 1);
@@ -87,9 +97,11 @@ std::string wrapping(std::string input, int linelength, int limit) {
 
   unsigned int n = 0;
 
-  for (int i = 0; i < input.size(); i++) {
+  for (int i = 0; i < input.size() - 1; i++) {
     wrapped.push_back(input[i]);
     n++;
+
+    if (input[i] == '\n') n = 0;
 
     if ((i != input.size()) && (n == linelength)) {
       if ((std::isalpha(input[i])) && (std::isalpha(input[i+1]))) wrapped.push_back('-');
@@ -98,11 +110,14 @@ std::string wrapping(std::string input, int linelength, int limit) {
     }
   }
 
+  wrapped.push_back(input[input.size() - 1]);
+
   return wrapped;
 }
 
 class RecipeViewScene : public Scene {
 private:
+  Font font;
   SceneManager* sm;
 public:
   Recipe recipe = placeholdersalad;
@@ -122,6 +137,57 @@ public:
   }
 
   void input() override {}
+
+  void reload(Recipe rec) override {
+    this->recipe = rec;
+  }
+};
+
+class SlideScene : public Scene {
+private:
+  Recipe recipe = Recipe("", "", "", "");
+  unsigned int ind = 0;
+  Texture2D texture{};
+  SceneManager* sm;
+public:
+  Font font;
+  SlideScene(const Recipe recipe, const Font font, const unsigned int i, SceneManager& sm) {
+    this->recipe = recipe;
+    this->font = font;
+    this->sm = &sm;
+    ind = i;
+    if (!this->recipe.slides[0].image.empty()) texture = resize(recipe.slides[i].image, 480, 270);
+  }
+
+  void draw() override {
+    ClearBackground(WHITE);
+    if (!this->recipe.slides[ind].image.empty()) DrawTexture(texture, ( w-480 ) / 2, 65, WHITE);
+    DrawTextEx(font, wrapping(recipe.slides[ind].title, 30, 29).c_str(), (Vector2) {(w - MeasureTextEx(font, wrapping(recipe.slides[ind].title, 30, 29).c_str(), 40, 2).x) / 2, 20}, 40, 2, BLACK);
+    DrawTextEx(font, wrapping(recipe.slides[ind].body, 80, 1000).c_str(), (Vector2){(w - MeasureTextEx(font, wrapping(recipe.slides[ind].body, 80, 1000).c_str(), 30, 2).x) / 2, 350}, 30, 2, BLACK);
+  }
+
+  void input() override {
+    if (IsKeyPressed(KEY_RIGHT)) {
+      if (ind != recipe.slides.size() - 1) ind++;
+    }
+    if (IsKeyPressed(KEY_LEFT)) {
+      if (ind != 0) ind--;
+    }
+    // if (IsKeyPressed(KEY_ESCAPE)) {
+    //   // sm-> scenes[1] -> recipe = recipe;
+    //   sm->setCurrent((unsigned int) 1);
+    // }
+  }
+
+  ~SlideScene() override {
+    if (texture.id != 0) UnloadTexture(texture);
+  }
+
+  void reload(Recipe rec) override {
+    recipe = rec;
+    if (!this->recipe.slides[ind].image.empty()) texture = resize(recipe.slides[0].image, 480, 270);
+    ind = 0;
+  }
 };
 
 int main() {
@@ -144,12 +210,19 @@ int main() {
   }
   Font montserrat;
   if (haveFont) montserrat = LoadFontEx(font.c_str(), 100, NULL, 0);
-  std::unique_ptr<Scene> a = std::make_unique<RecipeViewScene>(placeholdersalad, montserrat, sm);
+  Recipe rec = unpack("/home/alex/recs/idk.srcpan");
+  std::unique_ptr<Scene> a = std::make_unique<SlideScene>(rec, montserrat, 0, sm);
   sm.add(std::move(a));
-  sm.setCurrent((unsigned int)0);
+  sm.setCurrent((unsigned int) 0);
   while (!WindowShouldClose()) {
     BeginDrawing();
-    sm.draw();
+    try {
+      sm.draw();
+      sm.input();
+    }
+    catch (const std::string& e) {
+      std::cout << e << '\n';
+    }
     EndDrawing();
   }
   CloseWindow();
