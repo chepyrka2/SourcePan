@@ -121,3 +121,9 @@ Almost done!
 Eureka! I can change the parameters of the scene instead of the scene itself! How didnt I get it at first 😭😭
 Fixed SRCPANmngr.cpp! Images were wrong, fixed the path.
 Pic -> ImageAndSlide.png
+
+Day 14 (29.01.26)
+
+Going to end the slide scene completely
+And start a new scene if I can
+Have done some work, started the new and final scene

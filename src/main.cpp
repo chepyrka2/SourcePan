@@ -136,7 +136,15 @@ public:
     DrawTextEx(font, "Esc - To menu\nEnter - View", (Vector2){w - 10 - MeasureTextEx(font, "Esc - To menu\nEnter - View", 30, 2).x, h - 10 - MeasureTextEx(font, "Esc - To menu\nEnter - View", 30, 2).y}, 30, 2, BLACK);
   }
 
-  void input() override {}
+  void input() override {
+    if (IsKeyPressed(KEY_ENTER)) {
+      sm->scenes[2].get()->reload(recipe);
+      sm->setCurrent(2);
+    }
+    if (IsKeyPressed(KEY_ESCAPE)) {
+      sm->setCurrent((unsigned int) 1);
+    }
+  }
 
   void reload(Recipe rec) override {
     this->recipe = rec;
@@ -156,7 +164,7 @@ public:
     this->font = font;
     this->sm = &sm;
     ind = i;
-    if (!this->recipe.slides[0].image.empty()) texture = resize(recipe.slides[i].image, 480, 270);
+    if (!this->recipe.slides[0].image.empty()) texture = resize(recipe.slides[0].image, 480, 270);
   }
 
   void draw() override {
@@ -173,10 +181,9 @@ public:
     if (IsKeyPressed(KEY_LEFT)) {
       if (ind != 0) ind--;
     }
-    // if (IsKeyPressed(KEY_ESCAPE)) {
-    //   // sm-> scenes[1] -> recipe = recipe;
-    //   sm->setCurrent((unsigned int) 1);
-    // }
+    if (IsKeyPressed(KEY_ESCAPE)) {
+      sm->setCurrent(1);
+    }
   }
 
   ~SlideScene() override {
@@ -188,6 +195,28 @@ public:
     if (!this->recipe.slides[ind].image.empty()) texture = resize(recipe.slides[0].image, 480, 270);
     ind = 0;
   }
+};
+
+class MenuScene : public Scene {
+private:
+  Recipelist* rl;
+  SceneManager* sm;
+  Font font;
+  bool isWriting = 0;
+  std::string search{};
+public:
+  MenuScene(Recipelist& recipelist, SceneManager& scm, const Font& fn) {
+    rl = &recipelist;
+    sm = &scm;
+    font = fn;
+  }
+
+  void input() override {
+
+  }
+
+  void draw() override {}
+  void reload(Recipe recipe) override{}
 };
 
 int main() {
@@ -211,14 +240,15 @@ int main() {
   Font montserrat;
   if (haveFont) montserrat = LoadFontEx(font.c_str(), 100, NULL, 0);
   Recipe rec = unpack("/home/alex/recs/idk.srcpan");
-  std::unique_ptr<Scene> a = std::make_unique<SlideScene>(rec, montserrat, 0, sm);
-  sm.add(std::move(a));
-  sm.setCurrent((unsigned int) 0);
+  // std::unique_ptr<Scene> a = std::make_unique<SlideScene>(rec, montserrat, 0, sm);
+  // sm.add(std::move(a));
+  // sm.setCurrent((unsigned int) 0);
+  Recipelist rl;
+  MenuScene ms = MenuScene(rl, sm, montserrat);
   while (!WindowShouldClose()) {
     BeginDrawing();
     try {
-      sm.draw();
-      sm.input();
+      ms.input();
     }
     catch (const std::string& e) {
       std::cout << e << '\n';
