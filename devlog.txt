@@ -134,3 +134,4 @@ Final scene almost done, UI is made, the scene is scrollable, added an easter eg
 Recipes arent clickable yet.
 Some fixes in funcs, like I wrote == instead of != in the comparing of recipes.
 Done some crazy work
+Pic -> menu.png

@@ -219,16 +219,18 @@ public:
     if (getOS() == 'w') appdata = homedir() / "AppData" / "SorcePan";
     else appdata = homedir() / ".local" / "share" / "SourcePan";
     rld = resize( appdata / "rld.png", 50, 50);
-    sxsvn = resize(appdata / "67.jpg", 300, 300);
+    sxsvn = resize(appdata / "67.jpg", 600, 300);
   }
 
   void input() override {
     char key = GetCharPressed();
     if (GetMouseWheelMove()) {
-      if ( (GetMouseWheelMove() > 0) && (scroll < 300)) {
+      if ( (GetMouseWheelMove() > 0) && (scroll < 320)) {
         scroll += 20;
       }
-      if (GetMouseWheelMove() < 0) scroll -= 20;
+      if (GetMouseWheelMove() < 0) {
+        scroll -= 30;
+      }
     }
     if (isWriting) {
       scroll = 0;
@@ -264,7 +266,7 @@ public:
       searchout = "..." + searchout;
     }
     ClearBackground(WHITE);
-    DrawTexture(sxsvn, 490, scroll - 300, WHITE);
+    DrawTexture(sxsvn, 340, scroll - 300, WHITE);
     DrawRectangleLinesEx(Rectangle(300, 20+scroll, 630, 50), 3, BLACK);
     DrawRectangleRec(Rectangle(930, 20+scroll, 50, 50), BLUE);
     DrawText("Q", 940, 20+scroll, 50, WHITE);
