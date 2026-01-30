@@ -5,7 +5,7 @@
 #include "headers/SRCPANmngr.hpp"
 #include <filesystem>
 #include "headers/Recipe.hpp"
-#include "headers/Levenshtein.hpp"
+// #include "headers/Levenshtein.hpp"
 #include <vector>
 #include <memory>
 
@@ -200,22 +200,87 @@ public:
 class MenuScene : public Scene {
 private:
   Recipelist* rl;
+  Recipelist rlm;
   SceneManager* sm;
   Font font;
   bool isWriting = 0;
   std::string search{};
+  fs::path appdata;
+  Texture2D rld{};
+  std::vector<unsigned int> buttons;
+  int scroll = 0;
+  Texture2D sxsvn{};
 public:
   MenuScene(Recipelist& recipelist, SceneManager& scm, const Font& fn) {
     rl = &recipelist;
+    rlm = *rl;
     sm = &scm;
     font = fn;
+    if (getOS() == 'w') appdata = homedir() / "AppData" / "SorcePan";
+    else appdata = homedir() / ".local" / "share" / "SourcePan";
+    rld = resize( appdata / "rld.png", 50, 50);
+    sxsvn = resize(appdata / "67.jpg", 300, 300);
   }
 
   void input() override {
+    char key = GetCharPressed();
+    if (GetMouseWheelMove()) {
+      if ( (GetMouseWheelMove() > 0) && (scroll < 300)) {
+        scroll += 20;
+      }
+      if (GetMouseWheelMove() < 0) scroll -= 20;
+    }
+    if (isWriting) {
+      scroll = 0;
+      if (IsKeyPressed(KEY_BACKSPACE) && !search.empty()) search.erase(search.end() - 1);
+      if (std::isalpha(key) || std::isdigit(key) || ( key == ' ' ) || (key == '.')) search += key;
+      if (IsKeyPressed(KEY_ENTER)) {
+        rlm = rl->searchoutput(search);
+        isWriting = 0;
+        std::cout << search << std::endl;
+      }
+    }
+    if (IsKeyPressed(KEY_ESCAPE)) isWriting = 0;
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+      Vector2 mp = GetMousePosition();
 
+      if (((mp.x >= 300) && (mp.x < 930)) && ((mp.y >= 20 + scroll) && (mp.y <= 70 + scroll))) isWriting = 1;
+      if (((mp.x >= 230) && (mp.x <= 280)) && ((mp.y >= 20 + scroll) && (mp.y <= 70 + scroll))) {
+        load(*rl);
+        rlm = *rl;
+        std::cout << "Reloaded!" << std::endl;
+      }
+      if (((mp.x >= 930) && (mp.x <= 980)) && ((mp.y >= 20 + scroll) && (mp.y <= 70 + scroll))) {
+        rlm = rl->searchoutput(search);
+      }
+    }
   }
 
-  void draw() override {}
+  void draw() override {
+    std::string searchout = search;
+    buttons.clear();
+    if (MeasureTextEx(font, searchout.c_str(), 40, 2).x > 610) {
+      searchout.erase(searchout.begin(), searchout.end() - 15);
+      searchout = "..." + searchout;
+    }
+    ClearBackground(WHITE);
+    DrawTexture(sxsvn, 490, scroll - 300, WHITE);
+    DrawRectangleLinesEx(Rectangle(300, 20+scroll, 630, 50), 3, BLACK);
+    DrawRectangleRec(Rectangle(930, 20+scroll, 50, 50), BLUE);
+    DrawText("Q", 940, 20+scroll, 50, WHITE);
+    std::string i = isWriting? "1":"0";
+    DrawText(i.c_str(), 0, 0, 20, BLACK);
+    DrawTexture(rld, 230, 20+scroll, WHITE);
+    DrawTextEx(font, searchout.c_str(), (Vector2) { 310, (float) 25+scroll}, 40, 2, BLACK);
+    for (int j = 0; j < rlm.recipes.size(); j++) {
+      DrawRectangleLinesEx(Rectangle(0, 100 + 150 * j+scroll, w, 150), 3, BLACK);
+      DrawTextEx(font, wrapping(rlm.recipes[j].name, 22, 19).c_str(), (Vector2) {10, (float)100+150*j+5+scroll}, 70, 2, BLACK);
+      DrawTextEx(font, wrapping(rlm.recipes[j].desc, 40, 76).c_str(), (Vector2){10, (float) 100+150*j+80+scroll}, 20, 2, BLACK);
+      DrawTextEx(font, wrapping(rlm.recipes[j].author, 22, 19).c_str(), (Vector2) {w - MeasureTextEx(font, wrapping(rlm.recipes[j].author, 22, 19).c_str(), 30, 2).x - 10, (float) 100+150*j+10+scroll}, 30, 2, BLACK);
+      DrawTextEx(font, rlm.recipes[j].date.c_str(), (Vector2) {w - 10 - MeasureTextEx(font, rlm.recipes[j].date.c_str(), 30, 2).x, (float) 100+150*j+50+scroll}, 30, 2, BLACK);
+      buttons.push_back(100+150*j+scroll);
+    }
+  }
   void reload(Recipe recipe) override{}
 };
 
@@ -244,11 +309,14 @@ int main() {
   // sm.add(std::move(a));
   // sm.setCurrent((unsigned int) 0);
   Recipelist rl;
+  load(rl);
   MenuScene ms = MenuScene(rl, sm, montserrat);
+  SetExitKey(KEY_NULL);
   while (!WindowShouldClose()) {
     BeginDrawing();
     try {
       ms.input();
+      ms.draw();
     }
     catch (const std::string& e) {
       std::cout << e << '\n';

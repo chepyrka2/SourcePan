@@ -127,3 +127,10 @@ Day 14 (29.01.26)
 Going to end the slide scene completely
 And start a new scene if I can
 Have done some work, started the new and final scene
+
+Day 15 (30.01.26)
+
+Final scene almost done, UI is made, the scene is scrollable, added an easter egg
+Recipes arent clickable yet.
+Some fixes in funcs, like I wrote == instead of != in the comparing of recipes.
+Done some crazy work

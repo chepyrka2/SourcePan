@@ -82,7 +82,7 @@ void Recipe::printToConsole(){
 }
 
 bool Recipe::operator==(Recipe a){
-  if((name != a.name) || (desc != a.desc) || (author != a.author) || (date != a.date) || (slides.size() == a.slides.size())) return 0;
+  if((name != a.name) || (desc != a.desc) || (author != a.author) || (date != a.date) || (slides.size() != a.slides.size())) return 0;
   for(int i = 0; i < slides.size(); i++) if(slides[i] != a.slides[i]) return 0;
   return 1;
 }

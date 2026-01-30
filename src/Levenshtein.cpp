@@ -8,7 +8,7 @@ using namespace std;
 string plaintext(string input) {
   string idk;
   for (char c : input){
-    if (c != ' '){
+    if (std::isalpha(c) || std::isdigit(c)){
       idk.push_back(tolower(c));
     }
   }
