@@ -34,7 +34,7 @@ void archiveZip(fs::path pth, fs::path out){
 void extractZip(fs::path pth, fs::path out){
   mz_zip_archive zip{};
   if(!mz_zip_reader_init_file(&zip, pth.c_str(), 0)){
-    std::cerr << "Failed!" << std::endl;
+    std::cerr << "Failed!" << mz_zip_get_error_string(zip.m_last_error) << std::endl;
     return;
   }
 
@@ -135,20 +135,14 @@ void StartSRCPAN(){
 Recipe unpack(fs::path pth){
   if((!fs::exists(pth)) || ((pth.extension() != ".zip") && (pth.extension() != ".srcpan"))) return placeholdersalad;
   if(!fs::exists(homedir() / "recs")) StartSRCPAN();
-  fs::path temp;
-  temp = pth;
+  fs::path temp = pth;
   temp.replace_extension(".zip");
-  if (fs::exists(temp))
-    if(!fs::equivalent(pth, temp))
-      fs::copy(pth, temp, fs::copy_options::overwrite_existing);
-  fs::path out = homedir() / "recs" / temp.filename();
-  if (fs::exists(temp) && fs::exists(out))
-    if(!fs::equivalent(temp, out))
-      fs::copy(temp, out, fs::copy_options::overwrite_existing);
-  out = temp;
-  temp.replace_extension();
-  extractZip(out, temp);
-  out = temp;
+  temp = homedir() / "recs" / temp.filename();
+  if (fs::exists(temp)) fs::remove_all(temp);
+  fs::copy(pth, temp, fs::copy_options::overwrite_existing);
+  fs::path out = temp;
+  out.replace_extension("");
+  extractZip(temp, out);
   INIReader ini((out / "info.ini").string());
   std::string name = ini.Get("Info", "Name", "Unknown");
   std::string desc = ini.Get("Info", "Description", "Nothing!");

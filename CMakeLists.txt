@@ -50,6 +50,15 @@ add_executable(project
         src/main.cpp
 )
 
+#add_executable( RecipeMaker
+#        src/RecipeMaker.cpp
+#)
+#
+#target_link_libraries(RecipeMaker
+#        PRIVATE
+#        core
+#)
+
 target_link_libraries(project
         PRIVATE
         core
