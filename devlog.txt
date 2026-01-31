@@ -135,3 +135,9 @@ Recipes arent clickable yet.
 Some fixes in funcs, like I wrote == instead of != in the comparing of recipes.
 Done some crazy work
 Pic -> menu.png
+
+Day 16 (31.01.26)
+
+Did it! Completely forgot about recipe loading, gonna do it.
+Trying to do this, but for no apparent reason it doesnt work...
+pic -> failload.png

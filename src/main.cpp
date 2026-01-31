@@ -5,7 +5,6 @@
 #include "headers/SRCPANmngr.hpp"
 #include <filesystem>
 #include "headers/Recipe.hpp"
-// #include "headers/Levenshtein.hpp"
 #include <vector>
 #include <memory>
 
@@ -142,7 +141,7 @@ public:
       sm->setCurrent(2);
     }
     if (IsKeyPressed(KEY_ESCAPE)) {
-      sm->setCurrent((unsigned int) 1);
+      sm->setCurrent((unsigned int) 0);
     }
   }
 
@@ -207,6 +206,7 @@ private:
   std::string search{};
   fs::path appdata;
   Texture2D rld{};
+  Texture2D ld{};
   std::vector<unsigned int> buttons;
   int scroll = 0;
   Texture2D sxsvn{};
@@ -219,6 +219,7 @@ public:
     if (getOS() == 'w') appdata = homedir() / "AppData" / "SorcePan";
     else appdata = homedir() / ".local" / "share" / "SourcePan";
     rld = resize( appdata / "rld.png", 50, 50);
+    ld = resize(appdata / "ld.png", 50, 50);
     sxsvn = resize(appdata / "67.jpg", 600, 300);
   }
 
@@ -254,6 +255,17 @@ public:
       }
       if (((mp.x >= 930) && (mp.x <= 980)) && ((mp.y >= 20 + scroll) && (mp.y <= 70 + scroll))) {
         rlm = rl->searchoutput(search);
+        isWriting = 0;
+      }
+      if (((mp.x >= 990) && (mp.x <= 1040)) && ((mp.y >= 20+scroll) && (mp.y <= 70+scroll))) {
+        sm->setCurrent(3);
+      }
+      for (int z = 0; z < buttons.size(); z++) {
+        if ( mp.y > buttons[z] ) {
+          sm->scenes[1].get()->reload(rlm.recipes[z]);
+          sm->setCurrent(1);
+          break;
+        }
       }
     }
   }
@@ -273,6 +285,7 @@ public:
     std::string i = isWriting? "1":"0";
     DrawText(i.c_str(), 0, 0, 20, BLACK);
     DrawTexture(rld, 230, 20+scroll, WHITE);
+    DrawTexture(ld, 990, 20+scroll, WHITE);
     DrawTextEx(font, searchout.c_str(), (Vector2) { 310, (float) 25+scroll}, 40, 2, BLACK);
     for (int j = 0; j < rlm.recipes.size(); j++) {
       DrawRectangleLinesEx(Rectangle(0, 100 + 150 * j+scroll, w, 150), 3, BLACK);
@@ -284,6 +297,72 @@ public:
     }
   }
   void reload(Recipe recipe) override{}
+};
+
+class LoadScene : public Scene {
+private:
+  SceneManager* sm;
+  Font font;
+  Recipelist* rl;
+  std::string inpt{};
+  bool isWriting = 0;
+public:
+  LoadScene(SceneManager& scm, Font fnt, Recipelist& rll) {
+    sm = &scm;
+    font = fnt;
+    rl = &rll;
+  }
+
+  void input() override {
+    unsigned char c = GetCharPressed();
+    if (isWriting) {
+      if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_V)) {
+        inpt += GetClipboardText();
+      } else {
+        if (c) {
+          if (std::isalpha(c) || std::isdigit(c) || c == '/' || c == '\\' || c == ':') {
+            inpt += c;
+            std::cout << inpt << std::endl;
+          }
+        }
+      }
+      if (IsKeyPressed(KEY_BACKSPACE) && !inpt.empty()) inpt.erase(inpt.end() - 1);
+      if (IsKeyPressed(KEY_ESCAPE)) isWriting = 0;
+      if (IsKeyPressed(KEY_ENTER)) {
+        try {
+        isWriting = 0;
+        if (!fs::exists(inpt)) std::cerr << "No such path! \n";
+        else if ( (fs::path(inpt).extension() != ".srcpan") && (fs::path(inpt).extension() != ".zip") ) std::cerr << "Wrong extention twin\n";
+        else {
+          Recipe temp = unpack(fs::absolute(inpt));
+          *rl += temp;
+        }
+        }
+        catch (const std::string e) {
+          std::cerr << e << '\n';
+        }
+      }
+    } else if (IsKeyPressed(KEY_ESCAPE)) {
+      inpt.clear();
+      sm->setCurrent((unsigned int) 0);
+    }
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+      Vector2 mp = GetMousePosition();
+      if ((mp.y > (h - 60) / 2) && (mp.y < (h-60)/2+60)) isWriting = 1;
+    }
+  }
+
+  void draw() override {
+    ClearBackground(WHITE);
+    DrawRectangleLinesEx(Rectangle(0, ( h-60 ) / 2, w, 60), 3, BLACK);
+    if (inpt.empty()) DrawTextEx(font, "Enter the path", (Vector2) { 5, (h - 60) / 2 + 5}, 50, 2, GRAY);
+    else DrawTextEx(font, wrapping(inpt, 50, 49).c_str(), (Vector2) { 5, (h - 60) / 2 + 5}, 50, 2, BLACK);
+    std::string i = isWriting? "1":"0";
+    DrawText(i.c_str(), 0, 0, 20, BLACK);
+
+  }
+
+  void reload(Recipe recipe) override {}
 };
 
 int main() {
@@ -307,18 +386,19 @@ int main() {
   Font montserrat;
   if (haveFont) montserrat = LoadFontEx(font.c_str(), 100, NULL, 0);
   Recipe rec = unpack("/home/alex/recs/idk.srcpan");
-  // std::unique_ptr<Scene> a = std::make_unique<SlideScene>(rec, montserrat, 0, sm);
-  // sm.add(std::move(a));
-  // sm.setCurrent((unsigned int) 0);
   Recipelist rl;
   load(rl);
-  MenuScene ms = MenuScene(rl, sm, montserrat);
+  sm.add(std::make_unique<MenuScene>(rl, sm, montserrat));
+  sm.add(std::make_unique<RecipeViewScene>(placeholdersalad, montserrat, sm));
+  sm.add(std::make_unique<SlideScene>(placeholdersalad, montserrat, 0, sm));
+  sm.add(std::make_unique<LoadScene>(sm, montserrat, rl));
+  sm.setCurrent((unsigned int) 3);
   SetExitKey(KEY_NULL);
   while (!WindowShouldClose()) {
     BeginDrawing();
     try {
-      ms.input();
-      ms.draw();
+      sm.input();
+      sm.draw();
     }
     catch (const std::string& e) {
       std::cout << e << '\n';

@@ -41,7 +41,7 @@ struct Recipelist{
   std::vector<Recipe> recipes;
   Recipelist(std::vector<Recipe> recipes);
   Recipelist();
-  Recipelist searchoutput(std::string search, double precision = 0.3);
+  Recipelist searchoutput(std::string search, double precision = 0.34);
   Recipelist operator+(Recipelist a);
   Recipelist operator+(Recipe a);
   Recipelist& operator+=(Recipe& a);
