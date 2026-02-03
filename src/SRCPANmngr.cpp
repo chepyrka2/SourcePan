@@ -66,6 +66,7 @@ void extractZip(fs::path pth, fs::path out){
 }
 
 void load(Recipelist& toAdd){
+
   Recipelist loading;
   fs::path recs = homedir() / "recs";
   fs::path pwd;
@@ -106,7 +107,7 @@ void load(Recipelist& toAdd){
     }
     loading += recipe;
   }
-  toAdd += loading;
+  toAdd = loading;
 }
 
 char getOS(){
@@ -143,6 +144,7 @@ Recipe unpack(fs::path pth){
   fs::path out = temp;
   out.replace_extension("");
   extractZip(temp, out);
+  fs::remove_all(temp);
   INIReader ini((out / "info.ini").string());
   std::string name = ini.Get("Info", "Name", "Unknown");
   std::string desc = ini.Get("Info", "Description", "Nothing!");
@@ -181,7 +183,7 @@ Recipe unpack(fs::path pth){
   return recipe;
 }
 
-void pack(Recipe recipe, fs::path path){
+void pack(Recipe recipe, fs::path path, fs::path picfold){
   fs::path cwd;
   if(fs::exists(homedir() / "recs" / plaintext(recipe.name))){
     int i = 1;
@@ -193,15 +195,14 @@ void pack(Recipe recipe, fs::path path){
       }
     }
     cwd = homedir() / "recs" / (plaintext(recipe.name) + "0" + std::to_string(i));
-    fs::create_directories(cwd / "pics");
-    fs::copy(homedir() / "recs" / plaintext(recipe.name) / "pics", cwd / "pics", fs::copy_options::recursive);
   } else {
     cwd = homedir() / "recs" / plaintext(recipe.name);
     for(Slide& slide : recipe.slides) slide.image = "";
   }
   fs::create_directories(cwd);
   fs::create_directories(cwd / "slides");
-  if(fs::exists(cwd / "pics")) fs::create_directories(cwd / "pics");
+  fs::create_directories(cwd / "pics");
+  fs::copy(fs::absolute(picfold), cwd / "pics", fs::copy_options::recursive);
   std::ofstream info(cwd / "info.ini");
   info << "[Info]\n"
           "Name=" << recipe.name << "\n"

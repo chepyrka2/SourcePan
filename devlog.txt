@@ -143,3 +143,9 @@ Trying to do this, but for no apparent reason it doesnt work...
 pic -> failload.png
 Fixed! The problem was in... unpack()... again...
 I'll make the recipe maker in console.
+
+Day 17 (03.02.26)
+
+Making the maker in GUI... wish me luck
+Did the RecipeMakerScene, no slides tho
+pic -> RecipeMakerScene.png

@@ -13,7 +13,7 @@ struct Slide{
   std::string image = "";
   Slide(std::string title, std::string body, std::string image);
   Slide(std::string title, std::string body);
-  Slide();
+  Slide() = default;
   void printToConsole();
   bool operator==(Slide a);
   bool operator!=(Slide a);
@@ -27,6 +27,7 @@ struct Recipe{
   std::vector<Slide> slides;
   Recipe(std::string name, std::string desc, std::string date, std::string author, std::initializer_list<Slide> slides); // With initializer list
   Recipe(std::string name, std::string desc, std::string date, std::string author);
+  Recipe() = default;
   void addSlide(std::string title, std::string body, std::string image) ;
   void removeSlide(int index);
   void removeSlide(std::string titleToRemove);
@@ -40,7 +41,7 @@ struct Recipe{
 struct Recipelist{
   std::vector<Recipe> recipes;
   Recipelist(std::vector<Recipe> recipes);
-  Recipelist();
+  Recipelist() = default;
   Recipelist searchoutput(std::string search, double precision = 0.34);
   Recipelist operator+(Recipelist a);
   Recipelist operator+(Recipe a);

@@ -226,7 +226,7 @@ public:
   void input() override {
     char key = GetCharPressed();
     if (GetMouseWheelMove()) {
-      if ( (GetMouseWheelMove() > 0) && (scroll < 320)) {
+      if ( (GetMouseWheelMove() > 0) && (scroll < 0)) { // < 320 for an easter egg
         scroll += 20;
       }
       if (GetMouseWheelMove() < 0) {
@@ -248,6 +248,7 @@ public:
       Vector2 mp = GetMousePosition();
 
       if (((mp.x >= 300) && (mp.x < 930)) && ((mp.y >= 20 + scroll) && (mp.y <= 70 + scroll))) isWriting = 1;
+      else isWriting = 0;
       if (((mp.x >= 230) && (mp.x <= 280)) && ((mp.y >= 20 + scroll) && (mp.y <= 70 + scroll))) {
         load(*rl);
         rlm = *rl;
@@ -320,7 +321,7 @@ public:
         inpt += GetClipboardText();
       } else {
         if (c) {
-          if (std::isalpha(c) || std::isdigit(c) || c == '/' || c == '\\' || c == ':') {
+          if (std::isalpha(c) || std::isdigit(c) || c == '/' || c == '\\' || c == ':' || c == '.') {
             inpt += c;
             std::cout << inpt << std::endl;
           }
@@ -334,8 +335,10 @@ public:
         if (!fs::exists(inpt)) std::cerr << "No such path! \n";
         else if ( (fs::path(inpt).extension() != ".srcpan") && (fs::path(inpt).extension() != ".zip") ) std::cerr << "Wrong extention twin\n";
         else {
-          Recipe temp = unpack(fs::absolute(inpt));
-          *rl += temp;
+          unpack(fs::absolute(inpt));
+          rl->recipes.clear();
+          load(*rl);
+          std::cout << "Added! New amount: " << rl->recipes.size() << std::endl;
         }
         }
         catch (const std::string e) {
@@ -349,20 +352,109 @@ public:
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
       Vector2 mp = GetMousePosition();
       if ((mp.y > (h - 60) / 2) && (mp.y < (h-60)/2+60)) isWriting = 1;
+      else isWriting = 0;
     }
   }
 
   void draw() override {
+    std::string toOut = inpt;
+    if (toOut.size() > 50) toOut.erase(toOut.begin(), toOut.begin() + (toOut.size() - 47));
     ClearBackground(WHITE);
     DrawRectangleLinesEx(Rectangle(0, ( h-60 ) / 2, w, 60), 3, BLACK);
     if (inpt.empty()) DrawTextEx(font, "Enter the path", (Vector2) { 5, (h - 60) / 2 + 5}, 50, 2, GRAY);
-    else DrawTextEx(font, wrapping(inpt, 50, 49).c_str(), (Vector2) { 5, (h - 60) / 2 + 5}, 50, 2, BLACK);
+    else DrawTextEx(font, toOut.c_str(), (Vector2) { 5, (h - 60) / 2 + 5}, 50, 2, BLACK);
     std::string i = isWriting? "1":"0";
     DrawText(i.c_str(), 0, 0, 20, BLACK);
 
   }
 
   void reload(Recipe recipe) override {}
+};
+
+class RecipeMakerScene : public Scene {
+private:
+  Font font{};
+  SceneManager* sm;
+  Recipe rec;
+  std::string rn, rd, ra, rdate;
+  int isWriting = 0;
+public:
+  RecipeMakerScene(Font fnt, SceneManager& scm) {
+    font = fnt;
+    sm = &scm;
+  }
+
+  void draw() override {
+    ClearBackground(WHITE);
+
+    DrawTextEx(font, "Name", (Vector2) {30, 100}, 25, 2, BLACK);
+    DrawRectangleLinesEx(Rectangle(0, 130, w, 50), 3, BLACK);
+    DrawTextEx(font, rn.c_str(), (Vector2){10, 135}, 40, 2, BLACK);
+
+    DrawTextEx(font, "Description", (Vector2) {30, 200}, 25, 2, BLACK);
+    DrawRectangleLinesEx(Rectangle(0, 230, w, 50), 3, BLACK);
+    DrawTextEx(font, rd.c_str(), (Vector2){10, 235}, 40, 2, BLACK);
+
+    DrawTextEx(font, "Author", (Vector2) {30, 300}, 25, 2, BLACK);
+    DrawRectangleLinesEx(Rectangle(0, 330, w, 50), 3, BLACK);
+    DrawTextEx(font, ra.c_str(), (Vector2){10, 335}, 40, 2, BLACK);
+
+    DrawTextEx(font, "Date", (Vector2) {30, 400}, 25, 2, BLACK);
+    DrawRectangleLinesEx(Rectangle(0, 430, w, 50), 3, BLACK);
+    DrawTextEx(font, rdate.c_str(), (Vector2){10, 435}, 40, 2, BLACK);
+
+    DrawRectangle(w-100, h - 60, 100, 60, BLUE);
+    DrawRectangle(w - 90, h - 36, 50, 12, WHITE);
+    DrawTriangle((Vector2) {w - 40, h - 48}, (Vector2) {w - 40, h - 12}, (Vector2) {w - 10, h - 30}, WHITE);
+  }
+
+  void input() override {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+      Vector2 mp = GetMousePosition();
+      if ((mp.x < w) && (mp.x > w - 100) && (mp.y < h) && (mp.y > h - 60)) {
+        std::cout << "Ts pressed" << std::endl;
+        rec = Recipe(rn, rd, rdate, ra);
+      }
+      else if ((mp.y > 130) && (mp.y < 180)) isWriting = 1;
+      else if ((mp.y > 230) && (mp.y < 280)) isWriting = 2;
+      else if ((mp.y > 330) && (mp.y < 380)) isWriting = 3;
+      else if ((mp.y > 430) && (mp.y < 480)) isWriting = 4;
+      else isWriting = 0;
+    }
+
+    char c = GetCharPressed();
+    switch (isWriting) {
+      case 1:
+        if ((rn.size() < 59) && (std::isalpha(c) || std::isdigit(c) || c == ' ' || c == '.' || c == ',' || c == ';')) rn += c;
+        break;
+      case 2:
+        if ((rd.size() < 1600) && (std::isalpha(c) || std::isdigit(c) || c == ' ' || c == '.' || c == ',' || c == ';')) rd += c;
+        break;
+      case 3:
+        if ((ra.size() < 30) && (std::isalpha(c) || std::isdigit(c) || c == ' ' || c == '.' || c == ',' || c == ';')) ra += c;
+        break;
+      case 4:
+        if ((rdate.size() < 15) && (std::isalpha(c) || std::isdigit(c) || c == ' ' || c == '.' || c == ',' || c == ';')) rdate += c;
+        break;
+      default:
+        break;
+    }
+
+    if (IsKeyPressed(KEY_ESCAPE)) sm->setCurrent((unsigned int) 0);
+    if (IsKeyPressed(KEY_ENTER)) {
+      isWriting = 0;
+      std::cout << "Ts pressed" << std::endl;
+      rec = Recipe(rn, rd, rdate, ra);
+    }
+
+  }
+  void reload(Recipe recipe) override {
+    rn.clear();
+    rd.clear();
+    ra.clear();
+    rdate.clear();
+    rec = Recipe();
+  }
 };
 
 int main() {
@@ -385,14 +477,14 @@ int main() {
   }
   Font montserrat;
   if (haveFont) montserrat = LoadFontEx(font.c_str(), 100, NULL, 0);
-  Recipe rec = unpack("/home/alex/recs/idk.srcpan");
   Recipelist rl;
   load(rl);
   sm.add(std::make_unique<MenuScene>(rl, sm, montserrat));
   sm.add(std::make_unique<RecipeViewScene>(placeholdersalad, montserrat, sm));
   sm.add(std::make_unique<SlideScene>(placeholdersalad, montserrat, 0, sm));
   sm.add(std::make_unique<LoadScene>(sm, montserrat, rl));
-  sm.setCurrent((unsigned int) 3);
+  sm.add(std::make_unique<RecipeMakerScene>(montserrat, sm));
+  sm.setCurrent((unsigned int) 4);
   SetExitKey(KEY_NULL);
   while (!WindowShouldClose()) {
     BeginDrawing();

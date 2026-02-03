@@ -19,7 +19,6 @@ Slide::Slide(std::string title, std::string body){
   this->body = body;
 }
 
-Slide::Slide(){}
 
 void Slide::printToConsole(){
   std::cout << bar << std::endl;
@@ -95,7 +94,6 @@ Recipelist::Recipelist(std::vector<Recipe> recipes){
   this->recipes = recipes;
 }
 
-Recipelist::Recipelist(){}
 
 Recipelist Recipelist::searchoutput(std::string search, double precision){
   Recipelist out;
