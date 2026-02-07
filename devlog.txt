@@ -149,3 +149,13 @@ Day 17 (03.02.26)
 Making the maker in GUI... wish me luck
 Did the RecipeMakerScene, no slides tho
 pic -> RecipeMakerScene.png
+
+Day 18 (04.02.26)
+
+Started doing the SlideMakerScene
+
+Day 19 (07.02.26)
+
+Did a bit
+Pic -> SceneMakerScene.png
+Only GUI now

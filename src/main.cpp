@@ -392,15 +392,15 @@ public:
     DrawTextEx(font, rn.c_str(), (Vector2){10, 135}, 40, 2, BLACK);
 
     DrawTextEx(font, "Description", (Vector2) {30, 200}, 25, 2, BLACK);
-    DrawRectangleLinesEx(Rectangle(0, 230, w, 50), 3, BLACK);
+    DrawRectangleLinesEx(Rectangle(0, 230, w, 250), 3, BLACK);
     DrawTextEx(font, rd.c_str(), (Vector2){10, 235}, 40, 2, BLACK);
 
-    DrawTextEx(font, "Author", (Vector2) {30, 300}, 25, 2, BLACK);
-    DrawRectangleLinesEx(Rectangle(0, 330, w, 50), 3, BLACK);
+    DrawTextEx(font, "Author", (Vector2) {30, 200}, 25, 2, BLACK);
+    DrawRectangleLinesEx(Rectangle(0, 530, w, 50), 3, BLACK);
     DrawTextEx(font, ra.c_str(), (Vector2){10, 335}, 40, 2, BLACK);
 
-    DrawTextEx(font, "Date", (Vector2) {30, 400}, 25, 2, BLACK);
-    DrawRectangleLinesEx(Rectangle(0, 430, w, 50), 3, BLACK);
+    DrawTextEx(font, "Date", (Vector2) {30, 600}, 25, 2, BLACK);
+    DrawRectangleLinesEx(Rectangle(0, 630, w, 50), 3, BLACK);
     DrawTextEx(font, rdate.c_str(), (Vector2){10, 435}, 40, 2, BLACK);
 
     DrawRectangle(w-100, h - 60, 100, 60, BLUE);
@@ -417,8 +417,8 @@ public:
       }
       else if ((mp.y > 130) && (mp.y < 180)) isWriting = 1;
       else if ((mp.y > 230) && (mp.y < 280)) isWriting = 2;
-      else if ((mp.y > 330) && (mp.y < 380)) isWriting = 3;
-      else if ((mp.y > 430) && (mp.y < 480)) isWriting = 4;
+      else if ((mp.y > 530) && (mp.y < 580)) isWriting = 3;
+      else if ((mp.y > 630) && (mp.y < 680)) isWriting = 4;
       else isWriting = 0;
     }
 
@@ -457,6 +457,61 @@ public:
   }
 };
 
+class SlideMakerScene : public Scene {
+private:
+  Font font{};
+  SceneManager* sm;
+  std::string title, desc, image;
+  unsigned int index;
+  fs::path picdir;
+  int whichWriting = 0;
+  Recipe* rec;
+public:
+  SlideMakerScene(SceneManager& scm, Font fnt, unsigned int ind, fs::path picturedirectory) {
+    sm = &scm;
+    font = fnt;
+    index = ind;
+    picdir = picturedirectory;
+  }
+
+  void draw() override {
+    ClearBackground(WHITE);
+    std::string pthout = picdir;
+    if (pthout.size() > 40) pthout.erase(pthout.begin(), pthout.end() - 40);
+
+    DrawRectangleLinesEx(Rectangle(( w - MeasureTextEx(font, "WWWWWWWWWWWWWWWWWWWWWWWWWW", 40, 2).x ) / 2, 20, MeasureTextEx(font, "WWWWWWWWWWWWWWWWWWWWWWWWWW", 40, 2).x, 50), 3, BLACK);
+    DrawTextEx(font, title.c_str(), (Vector2) {( w - MeasureTextEx(font, title.c_str(), 40, 2).x ) / 2, 25}, 40, 2, BLACK);
+    if (title.empty()) DrawTextEx(font, "Title", (Vector2) {(w - MeasureTextEx(font, "Title", 40, 2).x) / 2, 25}, 40, 2, GRAY);
+
+    DrawRectangleLinesEx(Rectangle(50, 175, w - 100, 50), 3, BLACK);
+    DrawTextEx(font, pthout.c_str(), (Vector2) {6, 180}, 40, 2, BLACK);
+    if (pthout.empty()) DrawTextEx(font, "Picture path", (Vector2) {60, 180}, 40, 2, GRAY);
+
+    DrawRectangleLinesEx(Rectangle(50, 300, w - 100, 350), 3, BLACK);
+    DrawTextEx(font, wrapping(desc, 120, 1600).c_str(), (Vector2) {(w - MeasureTextEx(font, wrapping(desc, 120, 1600).c_str(), 20, 2).x) / 2, h - 415}, 20, 2, BLACK);
+
+    DrawRectangle(w-100, h - 60, 100, 60, BLUE);
+    DrawRectangle(w - 90, h - 36, 50, 12, WHITE);
+    DrawTriangle((Vector2) {w - 40, h - 48}, (Vector2) {w - 40, h - 12}, (Vector2) {w - 10, h - 30}, WHITE);
+
+    DrawRectangle(w - 220, h - 60, 100, 60, BLUE);
+    DrawText("END", w - 200 + ( 60 - MeasureText("END", 40) ) / 2, h - 46, 40, WHITE);
+  }
+
+  void input() override {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+      Vector2 mp = GetMousePosition();
+      if ((mp.y >= 20) && (mp.y <= 70) && (mp.x >= ( w - MeasureTextEx(font, "WWWWWWWWWWWWWWWWWWWWWWWWWW", 40, 2).x ) / 2) && (mp.x <= ( w - MeasureTextEx(font, "WWWWWWWWWWWWWWWWWWWWWWWWWW", 40, 2).x ) / 2 + MeasureTextEx(font, "WWWWWWWWWWWWWWWWWWWWWWWWWW", 40, 2).x)) whichWriting = 1;
+      if ((mp.y >= 175) && (mp.y <= 225) && (mp.x >= 50) && (mp.x <= w - 100)) whichWriting = 2;
+      if ((mp.y >= 350) && (mp.y <= 700) && (mp.x >= 50) && (mp.x <= w - 100)) whichWriting = 3;
+      else whichWriting = 0;
+      // if (())
+    }
+  }
+
+  void reload(Recipe recipe) override {}
+};
+
 int main() {
   InitWindow(w, h, title);
   // Texture2D test = resize("/home/alex/Downloads/images.jpg", 200, 200);
@@ -484,7 +539,8 @@ int main() {
   sm.add(std::make_unique<SlideScene>(placeholdersalad, montserrat, 0, sm));
   sm.add(std::make_unique<LoadScene>(sm, montserrat, rl));
   sm.add(std::make_unique<RecipeMakerScene>(montserrat, sm));
-  sm.setCurrent((unsigned int) 4);
+  sm.add(std::make_unique<SlideMakerScene>(sm, montserrat, 0, ""));
+  sm.setCurrent((unsigned int) 5);
   SetExitKey(KEY_NULL);
   while (!WindowShouldClose()) {
     BeginDrawing();

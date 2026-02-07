@@ -94,7 +94,6 @@ Recipelist::Recipelist(std::vector<Recipe> recipes){
   this->recipes = recipes;
 }
 
-
 Recipelist Recipelist::searchoutput(std::string search, double precision){
   Recipelist out;
   for(Recipe recipe : recipes){
