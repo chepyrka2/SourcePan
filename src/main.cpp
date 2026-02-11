@@ -7,6 +7,9 @@
 #include "headers/Recipe.hpp"
 #include <vector>
 #include <memory>
+#include <variant>
+
+#include "Levenshtein.hpp"
 
 namespace fs = std::filesystem;
 
@@ -29,13 +32,14 @@ Texture2D resize(fs::path img, int x, int y) {
 }
 
 class Scene {
-  public:
-    virtual void draw() = 0;
-    virtual void input() = 0;
+public:
+  virtual void draw() = 0;
+  virtual void input() = 0;
+  virtual void changeparameter(std::variant<std::string, int, double, fs::path> val) = 0;
 
-    virtual ~Scene() = default;
+  virtual ~Scene() = default;
 
-    virtual void reload(Recipe recipe) = 0;
+  virtual void reload(Recipe& recipe) = 0;
 };
 
 class SceneManager {
@@ -145,9 +149,11 @@ public:
     }
   }
 
-  void reload(Recipe rec) override {
+  void reload(Recipe& rec) override {
     this->recipe = rec;
   }
+
+  void changeparameter(std::variant<std::string, int, double, fs::path> val) override {}
 };
 
 class SlideScene : public Scene {
@@ -189,11 +195,16 @@ public:
     if (texture.id != 0) UnloadTexture(texture);
   }
 
-  void reload(Recipe rec) override {
+  void reload(Recipe& rec) override {
     recipe = rec;
-    if (!this->recipe.slides[ind].image.empty()) texture = resize(recipe.slides[0].image, 480, 270);
+    if (texture.id != 0)
+      UnloadTexture(texture);
+    if (!this->recipe.slides[ind].image.empty()) texture = resize(recipe.slides[ind].image, 480, 270);
     ind = 0;
   }
+
+  void changeparameter(std::variant<std::string, int, double, fs::path> val) override {}
+
 };
 
 class MenuScene : public Scene {
@@ -262,7 +273,7 @@ public:
         sm->setCurrent(3);
       }
       for (int z = 0; z < buttons.size(); z++) {
-        if ( mp.y > buttons[z] ) {
+        if ( mp.y > buttons[z] && mp.y <= buttons[z] + 150) {
           sm->scenes[1].get()->reload(rlm.recipes[z]);
           sm->setCurrent(1);
           break;
@@ -297,7 +308,8 @@ public:
       buttons.push_back(100+150*j+scroll);
     }
   }
-  void reload(Recipe recipe) override{}
+  void changeparameter(std::variant<std::string, int, double, fs::path> val) override {}
+  void reload(Recipe& recipe) override{}
 };
 
 class LoadScene : public Scene {
@@ -368,7 +380,8 @@ public:
 
   }
 
-  void reload(Recipe recipe) override {}
+  void reload(Recipe& recipe) override {}
+  void changeparameter(std::variant<std::string, int, double, fs::path> val) override {}
 };
 
 class RecipeMakerScene : public Scene {
@@ -378,10 +391,13 @@ private:
   Recipe rec;
   std::string rn, rd, ra, rdate;
   int isWriting = 0;
+  fs::path apd;
 public:
   RecipeMakerScene(Font fnt, SceneManager& scm) {
     font = fnt;
     sm = &scm;
+    if (getOS() == 'l') apd = homedir() / ".local" / "share" / "SourcePan";
+    else apd = homedir() / "AppData" / "SourcePan";
   }
 
   void draw() override {
@@ -395,13 +411,15 @@ public:
     DrawRectangleLinesEx(Rectangle(0, 230, w, 250), 3, BLACK);
     DrawTextEx(font, rd.c_str(), (Vector2){10, 235}, 40, 2, BLACK);
 
-    DrawTextEx(font, "Author", (Vector2) {30, 200}, 25, 2, BLACK);
+    DrawTextEx(font, "Author", (Vector2) {30, 500}, 25, 2, BLACK);
     DrawRectangleLinesEx(Rectangle(0, 530, w, 50), 3, BLACK);
-    DrawTextEx(font, ra.c_str(), (Vector2){10, 335}, 40, 2, BLACK);
+    DrawTextEx(font, ra.c_str(), (Vector2){10, 535}, 40, 2, BLACK);
 
     DrawTextEx(font, "Date", (Vector2) {30, 600}, 25, 2, BLACK);
     DrawRectangleLinesEx(Rectangle(0, 630, w, 50), 3, BLACK);
-    DrawTextEx(font, rdate.c_str(), (Vector2){10, 435}, 40, 2, BLACK);
+    DrawTextEx(font, rdate.c_str(), (Vector2){10, 635}, 40, 2, BLACK);
+
+    DrawText(std::to_string(isWriting).c_str(), 0, 0, 15, BLACK);
 
     DrawRectangle(w-100, h - 60, 100, 60, BLUE);
     DrawRectangle(w - 90, h - 36, 50, 12, WHITE);
@@ -416,7 +434,7 @@ public:
         rec = Recipe(rn, rd, rdate, ra);
       }
       else if ((mp.y > 130) && (mp.y < 180)) isWriting = 1;
-      else if ((mp.y > 230) && (mp.y < 280)) isWriting = 2;
+      else if ((mp.y > 230) && (mp.y < 480)) isWriting = 2;
       else if ((mp.y > 530) && (mp.y < 580)) isWriting = 3;
       else if ((mp.y > 630) && (mp.y < 680)) isWriting = 4;
       else isWriting = 0;
@@ -425,16 +443,16 @@ public:
     char c = GetCharPressed();
     switch (isWriting) {
       case 1:
-        if ((rn.size() < 59) && (std::isalpha(c) || std::isdigit(c) || c == ' ' || c == '.' || c == ',' || c == ';')) rn += c;
+        if ((rn.size() < 59) && (std::isgraph(c) || c == ' ')) rn += c;
         break;
       case 2:
-        if ((rd.size() < 1600) && (std::isalpha(c) || std::isdigit(c) || c == ' ' || c == '.' || c == ',' || c == ';')) rd += c;
+        if ((rd.size() < 1600) && (std::isgraph(c) || c == ' ')) rd += c;
         break;
       case 3:
-        if ((ra.size() < 30) && (std::isalpha(c) || std::isdigit(c) || c == ' ' || c == '.' || c == ',' || c == ';')) ra += c;
+        if ((ra.size() < 30) && (std::isgraph(c) || c == ' ')) ra += c;
         break;
       case 4:
-        if ((rdate.size() < 15) && (std::isalpha(c) || std::isdigit(c) || c == ' ' || c == '.' || c == ',' || c == ';')) rdate += c;
+        if ((rdate.size() < 15) && (std::isgraph(c) || c == ' ')) rdate += c;
         break;
       default:
         break;
@@ -443,18 +461,38 @@ public:
     if (IsKeyPressed(KEY_ESCAPE)) sm->setCurrent((unsigned int) 0);
     if (IsKeyPressed(KEY_ENTER)) {
       isWriting = 0;
-      std::cout << "Ts pressed" << std::endl;
       rec = Recipe(rn, rd, rdate, ra);
+      sm->scenes[5]->changeparameter(homedir() / "recs" / plaintext(rn));
+      sm->scenes[5]->reload(rec);
+    }
+    if (IsKeyPressed(KEY_BACKSPACE)) {
+      switch (isWriting) {
+        case 1:
+          if (!rn.empty()) rn.erase(rn.end()-1);
+          break;
+        case 2:
+          if (!rd.empty()) rd.erase(rd.end() - 1);
+          break;
+        case 3:
+          if (!ra.empty()) ra.erase(ra.end() - 1);
+          break;
+        case 4:
+          if (!rdate.empty()) rdate.erase(rdate.end() - 1);
+          break;
+        default:
+          break;
+      }
     }
 
   }
-  void reload(Recipe recipe) override {
+  void reload(Recipe& recipe) override {
     rn.clear();
     rd.clear();
     ra.clear();
     rdate.clear();
     rec = Recipe();
   }
+  void changeparameter(std::variant<std::string, int, double, fs::path> val) override {}
 };
 
 class SlideMakerScene : public Scene {
@@ -476,7 +514,7 @@ public:
 
   void draw() override {
     ClearBackground(WHITE);
-    std::string pthout = picdir;
+    std::string pthout = image;
     if (pthout.size() > 40) pthout.erase(pthout.begin(), pthout.end() - 40);
 
     DrawRectangleLinesEx(Rectangle(( w - MeasureTextEx(font, "WWWWWWWWWWWWWWWWWWWWWWWWWW", 40, 2).x ) / 2, 20, MeasureTextEx(font, "WWWWWWWWWWWWWWWWWWWWWWWWWW", 40, 2).x, 50), 3, BLACK);
@@ -484,7 +522,7 @@ public:
     if (title.empty()) DrawTextEx(font, "Title", (Vector2) {(w - MeasureTextEx(font, "Title", 40, 2).x) / 2, 25}, 40, 2, GRAY);
 
     DrawRectangleLinesEx(Rectangle(50, 175, w - 100, 50), 3, BLACK);
-    DrawTextEx(font, pthout.c_str(), (Vector2) {6, 180}, 40, 2, BLACK);
+    DrawTextEx(font, pthout.c_str(), (Vector2) {60, 180}, 40, 2, BLACK);
     if (pthout.empty()) DrawTextEx(font, "Picture path", (Vector2) {60, 180}, 40, 2, GRAY);
 
     DrawRectangleLinesEx(Rectangle(50, 300, w - 100, 350), 3, BLACK);
@@ -499,17 +537,42 @@ public:
   }
 
   void input() override {
+    unsigned char c = GetCharPressed();
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
       Vector2 mp = GetMousePosition();
       if ((mp.y >= 20) && (mp.y <= 70) && (mp.x >= ( w - MeasureTextEx(font, "WWWWWWWWWWWWWWWWWWWWWWWWWW", 40, 2).x ) / 2) && (mp.x <= ( w - MeasureTextEx(font, "WWWWWWWWWWWWWWWWWWWWWWWWWW", 40, 2).x ) / 2 + MeasureTextEx(font, "WWWWWWWWWWWWWWWWWWWWWWWWWW", 40, 2).x)) whichWriting = 1;
       if ((mp.y >= 175) && (mp.y <= 225) && (mp.x >= 50) && (mp.x <= w - 100)) whichWriting = 2;
       if ((mp.y >= 350) && (mp.y <= 700) && (mp.x >= 50) && (mp.x <= w - 100)) whichWriting = 3;
       else whichWriting = 0;
-      // if (())
+      if ((mp.x >= w-100) && (mp.y >= h-60)) {
+        rec->addSlide(title, desc, image);
+        sm->scenes[5]->reload(*rec);
+      }
+      if ((mp.y >= h - 60) && (mp.x >= w - 220) && (mp.x <= w - 110)) {
+        // write later
+      }
+    }
+    if (c && (std::isgraph(c) || c == ' ')) {
+
     }
   }
 
-  void reload(Recipe recipe) override {}
+  void reload(Recipe& recipe) override {
+
+  }
+  void changeparameter(std::variant<std::string, int, double, fs::path> val) override {
+    picdir = std::visit(
+      [](auto&& sixseven) -> fs::path {
+        if constexpr (std::is_same_v<std::decay_t<decltype(sixseven)>, std::string>) {
+          return sixseven;
+        } else if constexpr (std::is_same_v<std::decay_t<decltype(sixseven)>, fs::path>) {
+          return sixseven;
+        } else {
+          return homedir() / "recs";
+        }
+      }
+      ,val);
+  }
 };
 
 int main() {
@@ -534,13 +597,16 @@ int main() {
   if (haveFont) montserrat = LoadFontEx(font.c_str(), 100, NULL, 0);
   Recipelist rl;
   load(rl);
+  fs::path apd;
+  if (getOS() == 'l') apd = homedir() / ".local" / "share" / "SourcePan";
+  else apd = homedir() / "AppData" / "SourcePan";
   sm.add(std::make_unique<MenuScene>(rl, sm, montserrat));
   sm.add(std::make_unique<RecipeViewScene>(placeholdersalad, montserrat, sm));
   sm.add(std::make_unique<SlideScene>(placeholdersalad, montserrat, 0, sm));
   sm.add(std::make_unique<LoadScene>(sm, montserrat, rl));
   sm.add(std::make_unique<RecipeMakerScene>(montserrat, sm));
   sm.add(std::make_unique<SlideMakerScene>(sm, montserrat, 0, ""));
-  sm.setCurrent((unsigned int) 5);
+  sm.setCurrent((unsigned int) 4);
   SetExitKey(KEY_NULL);
   while (!WindowShouldClose()) {
     BeginDrawing();

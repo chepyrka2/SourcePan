@@ -159,3 +159,12 @@ Day 19 (07.02.26)
 Did a bit
 Pic -> SceneMakerScene.png
 Only GUI now
+
+Day 20 (09.02.26)
+
+Doing some work on it
+
+Day 21 (12.02.26)
+
+Did some work, like variants and things.
+A bit of srcpanmngr too

@@ -232,6 +232,38 @@ void pack(Recipe recipe, fs::path path, fs::path picfold){
   fs::rename(path, pth);
 }
 
+void packwd(Recipe recipe, fs::path path, fs::path dir){
+  fs::path cwd = dir;
+  fs::create_directories(cwd);
+  fs::create_directories(cwd / "slides");
+  std::ofstream info(cwd / "info.ini");
+  info << "[Info]\n"
+          "Name=" << recipe.name << "\n"
+          "Description=" << recipe.desc << "\n"
+          "Author=" << recipe.author << "\n"
+          "Date=" << recipe.date;
+  info.close();
+  int i = 1;
+  for(Slide slide : recipe.slides){
+    std::ofstream slidetxt(cwd / "slides" / (std::to_string(i) + ".txt"));
+    if(!slide.image.empty()) slidetxt << "Pic: " << fs::path( slide.image ).filename();
+    slidetxt << "\n";
+    if(slide.title != std::to_string(i)) slidetxt << "Title: " << slide.title;
+    slidetxt << "\n";
+    slidetxt << slide.body;
+    slidetxt.close();
+    i++;
+  }
+  path.replace_extension(".zip");
+  if(fs::exists(path)) fs::remove_all(path);
+  archiveZip(cwd, path);
+  path.replace_extension(".srcpan");
+  if(fs::exists(path)) fs::remove_all(path);
+  path.replace_extension(".zip");
+  fs::path pth = path;
+  pth.replace_extension(".srcpan");
+  fs::rename(path, pth);
+}
 // int main(){
 //   // Recipelist recipes;
 //   // load(recipes);

@@ -12,7 +12,8 @@ void load(Recipelist& toAdd);
 fs::path homedir();
 char getOS();
 Recipe unpack(fs::path pth);
-void pack(Recipe recipe, fs::path path);
+void pack(Recipe recipe, fs::path path, fs::path picdir);
+void packwd(Recipe recipe, fs::path path, fs::path dir);
 void StartSRCPAN();
 
 #endif
