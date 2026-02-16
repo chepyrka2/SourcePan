@@ -234,7 +234,6 @@ void pack(Recipe recipe, fs::path path, fs::path picfold){
 
 void packwd(Recipe recipe, fs::path path, fs::path dir){
   fs::path cwd = dir;
-  fs::create_directories(cwd);
   fs::create_directories(cwd / "slides");
   std::ofstream info(cwd / "info.ini");
   info << "[Info]\n"

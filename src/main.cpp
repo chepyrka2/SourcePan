@@ -462,7 +462,27 @@ public:
     if (IsKeyPressed(KEY_ENTER)) {
       isWriting = 0;
       rec = Recipe(rn, rd, rdate, ra);
-      sm->scenes[5]->changeparameter(homedir() / "recs" / plaintext(rn));
+      fs::path cwd = homedir() / "recs" / plaintext(rn);
+      if (!fs::exists(homedir() / "recs" / ( plaintext(rn) + ".txt" ))) fs::create_directories(homedir() / "recs" / plaintext(rn) / "pics");
+      else {
+        int i = 0;
+        bool flag = 0;
+
+        while (!fs::exists(homedir() / "recs" / (plaintext(rn) + std::to_string(i)))) {
+          i++;
+          if (i == 100) {
+            std::cerr << "Delete the " << plaintext(rn) << "(number) folder\n";
+            flag = 1;
+            break;
+          }
+        }
+
+        if (!flag) {
+          cwd /= (plaintext(rn) + std::to_string(i));
+          fs::create_directories(cwd / "pics");
+        }
+      }
+      sm->scenes[5]->changeparameter(cwd);
       sm->scenes[5]->reload(rec);
     }
     if (IsKeyPressed(KEY_BACKSPACE)) {
@@ -500,7 +520,6 @@ private:
   Font font{};
   SceneManager* sm;
   std::string title, desc, image;
-  unsigned int index;
   fs::path picdir;
   int whichWriting = 0;
   Recipe* rec;
@@ -508,7 +527,6 @@ public:
   SlideMakerScene(SceneManager& scm, Font fnt, unsigned int ind, fs::path picturedirectory) {
     sm = &scm;
     font = fnt;
-    index = ind;
     picdir = picturedirectory;
   }
 
@@ -545,11 +563,28 @@ public:
       if ((mp.y >= 350) && (mp.y <= 700) && (mp.x >= 50) && (mp.x <= w - 100)) whichWriting = 3;
       else whichWriting = 0;
       if ((mp.x >= w-100) && (mp.y >= h-60)) {
-        rec->addSlide(title, desc, image);
-        sm->scenes[5]->reload(*rec);
+        // rec->addSlide(title, desc, image);
+        // sm->scenes[5]->reload(*rec);
+        if (!image.empty() && fs::exists( fs::absolute(image) )) {
+          if (!fs::equivalent(image, homedir() / "recs" / picdir / fs::path(image).filename())) {
+            fs::copy(fs::absolute(image), homedir() / "recs" / picdir / fs::path(image).filename(), fs::copy_options::overwrite_existing);
+          }
+          if ( !fs::exists(fs::absolute(image)) ) image = "";
+          image = (homedir() / "recs" / picdir / fs::path(image).filename()).string();
+          rec->addSlide(title, desc, image);
+          reload(*rec);
+        }
       }
       if ((mp.y >= h - 60) && (mp.x >= w - 220) && (mp.x <= w - 110)) {
-        // write later
+        if (!image.empty() && fs::exists( fs::absolute(image) )) {
+          if (!fs::equivalent(image, homedir() / "recs" / picdir / fs::path(image).filename())) {
+            fs::copy(fs::absolute(image), homedir() / "recs" / picdir / fs::path(image).filename(), fs::copy_options::overwrite_existing);
+          }
+          if ( !fs::exists(fs::absolute(image)) ) image = "";
+          image = (homedir() / "recs" / picdir / fs::path(image).filename()).string();
+          rec->addSlide(title, desc, image);
+          reload(*rec);
+        }
       }
     }
     if (c && (std::isgraph(c) || c == ' ')) {
@@ -558,7 +593,11 @@ public:
   }
 
   void reload(Recipe& recipe) override {
-
+    rec = &recipe;
+    whichWriting = 0;
+    title = "";
+    desc = "";
+    image = "";
   }
   void changeparameter(std::variant<std::string, int, double, fs::path> val) override {
     picdir = std::visit(
@@ -575,6 +614,30 @@ public:
   }
 };
 
+class RecipeSavingScene : public Scene {
+private:
+  std::string pth;
+  fs::path cwd;
+  Recipe* rec;
+public:
+  RecipeSavingScene (Recipe& recipe) {
+    rec = &recipe;
+  }
+  void draw() override {
+    // DrawRectangleLinesEx(Re)
+  }
+  void reload(Recipe &recipe) override {
+    rec= &recipe;
+  }
+  void changeparameter(std::variant<std::string, int, double, fs::path> val) override {
+    cwd = std::visit([](auto&& sixseven) -> fs::path {
+      if constexpr (std::is_same_v<std::decay_t<decltype(sixseven)>, fs::path> ||
+        std::is_same_v<std::decay_t<decltype(sixseven)>, std::string>) return sixseven;
+      else return homedir() / "recs";
+    }, val);
+  }
+};
+
 int main() {
   InitWindow(w, h, title);
   // Texture2D test = resize("/home/alex/Downloads/images.jpg", 200, 200);
@@ -586,7 +649,7 @@ int main() {
     if (!fs::exists(homedir() / ".local" / "share" / "SourcePan")) fs::create_directories (homedir() / ".local" / "share" / "SourcePan");
     font = homedir() / ".local" / "share" / "SourcePan" / "font.ttf";
   } else {
-    if (!fs::exists(homedir() / "AppData" / "SourcePan")) fs::create_directories(homedir() / "AppData" / "SorcePan");
+    if (!fs::exists(homedir() / "AppData" / "SourcePan")) fs::create_directories(homedir() / "AppData" / "SourcePan");
     font = homedir() / "AppData" / "SourcePan" / "font.ttf";
     if (!fs::exists(font) && !fs::exists(homedir() / "AppData" / "Local" / "Microsoft" / "Windows" / "Fonts" / "Montserrat-Regular.ttf")) haveFont = 0;
     if (fs::exists(homedir() / "AppData" / "Local" / "Microsoft" / "Windows" / "Fonts" / "Montserrat-Regular.ttf")) {
