@@ -172,3 +172,67 @@ A bit of srcpanmngr too
 Day 23 (15.02.26)
 
 TIME TO LOCK IN!
+
+Day 24 (23.02.26)
+
+Did some work with memory, and oh boy... some leaks are in dbus library...
+
+=================================================================
+==244055==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 2784 byte(s) in 2 object(s) allocated from:
+    #0 0x7f299ab20cb5 in malloc (/usr/lib/libasan.so.8+0x120cb5) (BuildId: 0b96d08695bbce2da9d4770c29ad2e72fb536f47)
+    #1 0x7b29953f1e31  (<unknown module>)
+
+Direct leak of 184 byte(s) in 1 object(s) allocated from:
+    #0 0x7f299ab205dd in calloc (/usr/lib/libasan.so.8+0x1205dd) (BuildId: 0b96d08695bbce2da9d4770c29ad2e72fb536f47)
+    #1 0x7f29999a7ac3  (/usr/lib/../lib/libdbus-1.so.3+0x24ac3) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #2 0x7f29999a9bbd in _dbus_message_loader_queue_messages (/usr/lib/../lib/libdbus-1.so.3+0x26bbd) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #3 0x7f29999b48ae  (/usr/lib/../lib/libdbus-1.so.3+0x318ae) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #4 0x7f29999b4aa7  (/usr/lib/../lib/libdbus-1.so.3+0x31aa7) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #5 0x7f29999b4e00  (/usr/lib/../lib/libdbus-1.so.3+0x31e00) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #6 0x7f29999b538c  (/usr/lib/../lib/libdbus-1.so.3+0x3238c) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #7 0x7f2999998e92  (/usr/lib/../lib/libdbus-1.so.3+0x15e92) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #8 0x7f29999adb9f in dbus_pending_call_block (/usr/lib/../lib/libdbus-1.so.3+0x2ab9f) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #9 0x7f299999ad46 in dbus_connection_send_with_reply_and_block (/usr/lib/../lib/libdbus-1.so.3+0x17d46) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #10 0x7f299999afed in dbus_bus_register (/usr/lib/../lib/libdbus-1.so.3+0x17fed) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #11 0x7f299999b2da  (/usr/lib/../lib/libdbus-1.so.3+0x182da) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #12 0x7b2995417da6  (<unknown module>)
+
+Indirect leak of 2800 byte(s) in 1 object(s) allocated from:
+    #0 0x7f299ab205dd in calloc (/usr/lib/libasan.so.8+0x1205dd) (BuildId: 0b96d08695bbce2da9d4770c29ad2e72fb536f47)
+    #1 0x7b29953f20ed  (<unknown module>)
+
+Indirect leak of 925 byte(s) in 1 object(s) allocated from:
+    #0 0x7f299ab1fa45  (/usr/lib/libasan.so.8+0x11fa45) (BuildId: 0b96d08695bbce2da9d4770c29ad2e72fb536f47)
+    #1 0x7f29999b6566  (/usr/lib/../lib/libdbus-1.so.3+0x33566) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #2 0x7f29999b65f4  (/usr/lib/../lib/libdbus-1.so.3+0x335f4) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #3 0x7f29999b81db in _dbus_string_copy_len (/usr/lib/../lib/libdbus-1.so.3+0x351db) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #4 0x7f29999aa3ff in _dbus_message_loader_queue_messages (/usr/lib/../lib/libdbus-1.so.3+0x273ff) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #5 0x7f29999b48ae  (/usr/lib/../lib/libdbus-1.so.3+0x318ae) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #6 0x7f29999b4aa7  (/usr/lib/../lib/libdbus-1.so.3+0x31aa7) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #7 0x7f29999b4e00  (/usr/lib/../lib/libdbus-1.so.3+0x31e00) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #8 0x7f29999b538c  (/usr/lib/../lib/libdbus-1.so.3+0x3238c) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #9 0x7f2999998e92  (/usr/lib/../lib/libdbus-1.so.3+0x15e92) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #10 0x7f29999adb9f in dbus_pending_call_block (/usr/lib/../lib/libdbus-1.so.3+0x2ab9f) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #11 0x7f299999ad46 in dbus_connection_send_with_reply_and_block (/usr/lib/../lib/libdbus-1.so.3+0x17d46) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #12 0x7b299546dfa3  (<unknown module>)
+
+Indirect leak of 88 byte(s) in 1 object(s) allocated from:
+    #0 0x7f299ab1fa45  (/usr/lib/libasan.so.8+0x11fa45) (BuildId: 0b96d08695bbce2da9d4770c29ad2e72fb536f47)
+    #1 0x7f29999b6566  (/usr/lib/../lib/libdbus-1.so.3+0x33566) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #2 0x7f29999b65f4  (/usr/lib/../lib/libdbus-1.so.3+0x335f4) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #3 0x7f29999b81db in _dbus_string_copy_len (/usr/lib/../lib/libdbus-1.so.3+0x351db) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #4 0x7f29999a9bfd in _dbus_message_loader_queue_messages (/usr/lib/../lib/libdbus-1.so.3+0x26bfd) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #5 0x7f29999b48ae  (/usr/lib/../lib/libdbus-1.so.3+0x318ae) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #6 0x7f29999b4aa7  (/usr/lib/../lib/libdbus-1.so.3+0x31aa7) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #7 0x7f29999b4e00  (/usr/lib/../lib/libdbus-1.so.3+0x31e00) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #8 0x7f29999b538c  (/usr/lib/../lib/libdbus-1.so.3+0x3238c) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #9 0x7f2999998e92  (/usr/lib/../lib/libdbus-1.so.3+0x15e92) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #10 0x7f29999adb9f in dbus_pending_call_block (/usr/lib/../lib/libdbus-1.so.3+0x2ab9f) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #11 0x7f299999ad46 in dbus_connection_send_with_reply_and_block (/usr/lib/../lib/libdbus-1.so.3+0x17d46) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #12 0x7f299999afed in dbus_bus_register (/usr/lib/../lib/libdbus-1.so.3+0x17fed) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #13 0x7f299999b2da  (/usr/lib/../lib/libdbus-1.so.3+0x182da) (BuildId: 65f44f39f68b8f63de82c45fc6108bfc66c0247a)
+    #14 0x7b2995417da6  (<unknown module>)
+
+SUMMARY: AddressSanitizer: 6781 byte(s) leaked in 6 allocation(s).

@@ -93,7 +93,7 @@ std::string wrapping(std::string input, int linelength, int limit) {
     }
   }
   std::string wrapped;
-  if (input.size() > limit) {
+  if (input.size() > limit + 1) {
     input.erase(input.begin() + limit + 1);
     input.append("...");
   }
@@ -669,7 +669,7 @@ int main() {
   sm.add(std::make_unique<LoadScene>(sm, montserrat, rl));
   sm.add(std::make_unique<RecipeMakerScene>(montserrat, sm));
   sm.add(std::make_unique<SlideMakerScene>(sm, montserrat, 0, ""));
-  sm.setCurrent((unsigned int) 4);
+  sm.setCurrent((unsigned int) 0);
   SetExitKey(KEY_NULL);
   while (!WindowShouldClose()) {
     BeginDrawing();
@@ -682,5 +682,6 @@ int main() {
     }
     EndDrawing();
   }
+  UnloadFont(montserrat);
   CloseWindow();
 }
