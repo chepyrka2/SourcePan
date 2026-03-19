@@ -182,9 +182,13 @@ public:
   void input() override {
     if (IsKeyPressed(KEY_RIGHT)) {
       if (ind != recipe.slides.size() - 1) ind++;
+      UnloadTexture(texture);
+      if (!this->recipe.slides[ind].image.empty()) texture = resize(recipe.slides[ind].image, 480, 270);
     }
     if (IsKeyPressed(KEY_LEFT)) {
       if (ind != 0) ind--;
+      UnloadTexture(texture);
+      if (!this->recipe.slides[ind].image.empty()) texture = resize(recipe.slides[ind].image, 480, 270);
     }
     if (IsKeyPressed(KEY_ESCAPE)) {
       sm->setCurrent(1);
@@ -199,8 +203,8 @@ public:
     recipe = rec;
     if (texture.id != 0)
       UnloadTexture(texture);
-    if (!this->recipe.slides[ind].image.empty()) texture = resize(recipe.slides[ind].image, 480, 270);
     ind = 0;
+    if (!this->recipe.slides[ind].image.empty()) texture = resize(recipe.slides[ind].image, 480, 270);
   }
 
   void changeparameter(std::variant<std::string, int, double, fs::path> val) override {}
@@ -310,6 +314,11 @@ public:
   }
   void changeparameter(std::variant<std::string, int, double, fs::path> val) override {}
   void reload(Recipe& recipe) override{}
+  ~MenuScene() override {
+    UnloadTexture(rld);
+    UnloadTexture(ld);
+    UnloadTexture(sxsvn);
+  }
 };
 
 class LoadScene : public Scene {
@@ -555,7 +564,7 @@ public:
   }
 
   void input() override {
-    unsigned char c = GetCharPressed();
+    char c = GetCharPressed();
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
       Vector2 mp = GetMousePosition();
       if ((mp.y >= 20) && (mp.y <= 70) && (mp.x >= ( w - MeasureTextEx(font, "WWWWWWWWWWWWWWWWWWWWWWWWWW", 40, 2).x ) / 2) && (mp.x <= ( w - MeasureTextEx(font, "WWWWWWWWWWWWWWWWWWWWWWWWWW", 40, 2).x ) / 2 + MeasureTextEx(font, "WWWWWWWWWWWWWWWWWWWWWWWWWW", 40, 2).x)) whichWriting = 1;
@@ -588,7 +597,37 @@ public:
       }
     }
     if (c && (std::isgraph(c) || c == ' ')) {
-
+      switch (whichWriting)
+        {
+          case 1:
+            title += c;
+            break;
+          case 2:
+            image += c;
+            break;
+          case 3:
+            desc += c;
+            break;
+          default:
+            break;
+        }
+    }
+    if (IsKeyPressed(KEY_BACKSPACE))
+    {
+      switch (whichWriting)
+      {
+        case 1:
+          if (!title.empty()) title.erase(title.size()-1);
+          break;
+        case 2:
+          if (!image.empty()) image.erase(image.size()-1);
+          break;
+        case 3:
+          if (!desc.empty()) desc.erase(desc.size()-1);
+          break;
+        default:
+          break;
+      }
     }
   }
 
@@ -616,15 +655,42 @@ public:
 
 class RecipeSavingScene : public Scene {
 private:
+  SceneManager* sm;
   std::string pth;
   fs::path cwd;
   Recipe* rec;
+  Font font{};
 public:
-  RecipeSavingScene (Recipe& recipe) {
+  RecipeSavingScene (SceneManager& scm, Recipe& recipe, Font fnt) {
+    sm = &scm;
     rec = &recipe;
+    font = fnt;
+
   }
   void draw() override {
-    // DrawRectangleLinesEx(Re)
+    ClearBackground(WHITE);
+    std::string pthout = pth;
+    if (pthout.size() > 60) pthout = "..." + pth.substr(0, 57);
+    DrawRectangleLinesEx(Rectangle(0, (h - 50) / 2, w, 50), 2, BLACK);
+    if (pth.empty()) DrawTextEx(font, "Path where to save", (Vector2) {5, (h - 40) / 2}, 40, 2, GRAY);
+    DrawTextEx(font, pthout.c_str(), (Vector2) {5, (h - 40) / 2}, 40, 2, BLACK);
+  }
+  void input() override
+  {
+    char c = GetKeyPressed();
+    if (std::isgraph(c) || c == ' ') pth += c;
+    if (IsKeyPressed(KEY_BACKSPACE) && !pth.empty()) pth.erase(pth.size() - 1);
+    if (IsKeyPressed(KEY_ENTER))
+    {
+      char flag = 0;
+      fs::path path(pth);
+      if (fs::exists(path)) flag |= 0b00000001;
+      if (!fs::exists(path.parent_path())) flag |= 0b00000010;
+      if (!flag) packwd(*rec, path, cwd);
+      if (flag & 1) std::cerr << "Path already occupied" << std::endl;
+      if (flag & 2) std::cerr << "No such folder as " << path.parent_path() << std::endl;
+      sm->setCurrent((unsigned int)0);
+    }
   }
   void reload(Recipe &recipe) override {
     rec= &recipe;
@@ -669,6 +735,7 @@ int main() {
   sm.add(std::make_unique<LoadScene>(sm, montserrat, rl));
   sm.add(std::make_unique<RecipeMakerScene>(montserrat, sm));
   sm.add(std::make_unique<SlideMakerScene>(sm, montserrat, 0, ""));
+  sm.add(std::make_unique<RecipeSavingScene>(sm, placeholdersalad, montserrat));
   sm.setCurrent((unsigned int) 0);
   SetExitKey(KEY_NULL);
   while (!WindowShouldClose()) {
