@@ -592,7 +592,11 @@ public:
           if ( !fs::exists(fs::absolute(image)) ) image = "";
           image = (homedir() / "recs" / picdir / fs::path(image).filename()).string();
           rec->addSlide(title, desc, image);
+          sm->scenes[6]->reload(*rec);
+          sm->scenes[6]->changeparameter(picdir);
+          sm->setCurrent(6);
           reload(*rec);
+
         }
       }
     }

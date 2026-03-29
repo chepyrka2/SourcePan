@@ -1,8 +1,7 @@
 #include <filesystem>
 #include <iostream>
-#include <miniz/miniz.h>
+#include "../miniz/miniz.h"
 #include <cstdlib>
-#include <miniz/miniz_zip.h>
 #include <fstream>
 #include <sstream>
 #include <string>

@@ -14,9 +14,9 @@ find_package(
         raylib REQUIRED
 )
 
-find_package(
-        miniz REQUIRED
-)
+#find_package(
+#        miniz REQUIRED
+#)
 
 # --- inih library ---
 add_library(inih
